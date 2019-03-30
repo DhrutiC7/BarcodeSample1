@@ -214,17 +214,15 @@ public class MainActivity extends Activity implements EMDKListener, DataListener
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            System.out.println("product ID = "+(String)response.get("product_code"));
- //                           updateData("<font color='gray'>" + "Product Code" + "</font> : " + (String)response.get("product_code"));
-   //                         updateData("<font color='gray'>" + "Product Name" + "</font> : " + (String)response.get("product_name"));
-
-
-                            productNameData.setText(response.get("product_name").toString());
-                            productCodeData.setText(response.get("product_code").toString());
-                            dateData.setText(response.get("date").toString());
-                            shiftData.setText(response.get("shift").toString());
-                            dayCartonData.setText(response.get("dailyCount").toString());
-                            shiftCartonData.setText(response.get("shiftCount").toString());
+                            if((boolean)response.get("show_bar_data")) {
+                                productNameData.setText(response.get("product_name").toString());
+                                productCodeData.setText(response.get("product_code").toString());
+                                dateData.setText(response.get("date").toString());
+                                shiftData.setText(response.get("shift").toString());
+                                dayCartonData.setText(response.get("dailyCount").toString());
+                                shiftCartonData.setText(response.get("shiftCount").toString());
+                            }
+                            updateStatus(response.get("msg").toString());
                         }catch(Exception ex){
                             System.out.println("in catch block of request function"+ex);
                         }
