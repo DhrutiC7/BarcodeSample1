@@ -6,126 +6,231 @@
     android:layout_height="match_parent"
     tools:context="com.symbol.barcodesample1.MainActivity">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="5dp">
 
-        <TextView
-            android:id="@+id/textViewSS"
+
+        <LinearLayout
+            android:id="@+id/productionLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Select Scanner:" />
+            android:orientation="vertical">
 
-        <TableLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <TableRow
+            <TextView
+                android:id="@+id/textViewSS"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" >
+                android:layout_height="wrap_content"
+                android:text="Select Scanner:"
+                android:visibility="gone" />
 
-                <Spinner
-                    android:id="@+id/spinnerScannerDevices"
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone">
+
+                <TableRow
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-            </TableRow>
+                    android:layout_height="match_parent">
 
-        </TableLayout>
+                    <Spinner
+                        android:id="@+id/spinnerScannerDevices"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+                </TableRow>
 
-        <TextView
-            android:id="@+id/textViewSD"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Select Decoders:" />
+            </TableLayout>
 
-        <TableLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <TableRow
+            <TextView
+                android:id="@+id/textViewStatus"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content" />
 
-                <CheckBox
-                    android:id="@+id/checkBoxEAN8"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="EAN8" />
-
-                <CheckBox
-                    android:id="@+id/checkBoxEAN13"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="EAN13" />
-            </TableRow>
-
-            <TableRow
+            <Button
+                android:id="@+id/buttonScan"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content"
+                android:onClick="softScan"
+                android:text="Scan"
+                android:visibility="gone" />
 
-                <CheckBox
-                    android:id="@+id/checkBoxCode39"
+            <RadioGroup
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                tools:layout_editor_absoluteX="0dp"
+                tools:layout_editor_absoluteY="132dp"
+                android:visibility="gone">
+
+                <RadioButton
+                    android:id="@+id/radioButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="Code39" />
+                    android:layout_weight="1"
+                    android:onClick="onRadioButtonClicked"
+                    android:text="Receive" />
 
-                <CheckBox
-                    android:id="@+id/checkBoxCode128"
+                <RadioButton
+                    android:id="@+id/radioButton2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="Code128" />
-            </TableRow>
+                    android:layout_weight="1"
+                    android:onClick="onRadioButtonClicked"
+                    android:text="Dispatch" />
 
-        </TableLayout>
+                <RadioButton
+                    android:id="@+id/radioButton3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Production" />
+            </RadioGroup>
 
-        <Button
-            android:id="@+id/buttonScan"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:onClick="softScan"
-            android:text="Scan" />
-
-        <TextView
-            android:id="@+id/textViewS"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Status:" />
-
-        <TextView
-            android:id="@+id/textViewStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/textViewD"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Data:" />
-
-        <ScrollView
-            android:id="@+id/scrollViewData"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/detail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Details" />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
 
                 <TextView
-                    android:id="@+id/textViewData"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-        </ScrollView>
+                    android:id="@+id/date"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="DATE" />
 
-    </LinearLayout>
+                <TextView
+                    android:id="@+id/shift"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="SHIFT" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/dateData"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5" />
+
+                <TextView
+                    android:id="@+id/shiftData"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/textViewD"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="SCANNED BARCODE DATA" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/productNameLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="PRODUCT TYPE" />
+
+                <TextView
+                    android:id="@+id/productCodeLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="PRODUCT CODE" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/productNameData"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/productCodeData"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="" />
+            </LinearLayout>
+
+            <ScrollView
+                android:id="@+id/scrollViewData"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="visible">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/textViewData"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                </LinearLayout>
+            </ScrollView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/dayCartonCount"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="DAILY CARTON COUNTS" />
+
+                <TextView
+                    android:id="@+id/shiftCartonCount"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="SHIFT CARTON COUNTS" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/dayCartonData"
+                    android:layout_width="194dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.5"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/shiftCartonData"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+
+
+
+
 
 </android.support.constraint.ConstraintLayout>
