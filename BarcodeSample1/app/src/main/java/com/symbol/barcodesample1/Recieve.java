@@ -94,7 +94,8 @@ public class Recieve extends Activity implements EMDKListener, DataListener, Sta
     private String errorColor  = "#EF3038";
     private  String okColor = "#0865B3";
     private String floorId = "";
-    private String warehouseOpUrl = "https://api.eronkan.com/component/warehouse-operations/receiveables";
+    RequestQueue requestQueue =null ;
+    private String warehouseOpUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/receiveables";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -117,7 +118,7 @@ public class Recieve extends Activity implements EMDKListener, DataListener, Sta
 //        checkBoxCode39 = (CheckBox)findViewById(R.id.checkBoxCode39);
 //        checkBoxCode128 = (CheckBox)findViewById(R.id.checkBoxCode128);
         spinnerScannerDevices = (Spinner)findViewById(R.id.spinnerScannerDevices);
-
+        requestQueue = requestSingleton.getInstance(this.getApplicationContext()).getRequestQueue();
         EMDKResults results = EMDKManager.getEMDKManager(getApplicationContext(), this);
         if (results.statusCode != EMDKResults.STATUS_CODE.SUCCESS) {
             updateStatus("EMDKManager object request failed!",errorColor);
@@ -145,6 +146,8 @@ public class Recieve extends Activity implements EMDKListener, DataListener, Sta
         enumerateScannerDevices();
         // Set default scanner
         spinnerScannerDevices.setSelection(defaultIndex);
+        // Initialize scanner
+        initScanner();
     }
 
     @Override
@@ -210,8 +213,7 @@ public class Recieve extends Activity implements EMDKListener, DataListener, Sta
         params.put("floor_id", floorId);
         JSONObject parameters = new JSONObject(params);
         System.out.println("params to send = " + parameters);
-        // Instantiate the RequestQueue.
-        RequestQueue queue = Volley.newRequestQueue(this);
+
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.POST, warehouseOpUrl, parameters, new Response.Listener<JSONObject>() {
 
@@ -242,7 +244,7 @@ public class Recieve extends Activity implements EMDKListener, DataListener, Sta
 
 // Add the request to the RequestQueue.
         System.out.println("before queue add");
-        queue.add(jsonObjectRequest);
+        requestQueue.add(jsonObjectRequest);
     }
     @Override
     public void onStatus(StatusData statusData) {

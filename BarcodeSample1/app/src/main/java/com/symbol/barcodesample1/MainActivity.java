@@ -28,6 +28,11 @@ public class MainActivity extends Activity {
                 startActivity(intent);
                 break;
             }
+            case R.id.dispatch:{
+                Intent intent = new Intent(this, Dispatch.class);
+                startActivity(intent);
+                break;
+            }
         }
 
     }

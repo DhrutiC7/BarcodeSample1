@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.symbol.barcodesample1.Dispatch">
+
+    <LinearLayout
+        android:id="@+id/testLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="5dp">
+
+        <TextView
+            android:id="@+id/textViewStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:gravity="center_horizontal"
+            android:padding="10dp"
+            android:text="test"
+            android:textAlignment="center"
+            android:textColor="#ffffff" />
+
+
+        <ScrollView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <LinearLayout
+                android:id="@+id/productionLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="5dp">
+
+                <TextView
+                    android:id="@+id/textViewSS"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Select Scanner:"
+                    android:visibility="gone" />
+
+                <TableLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="gone">
+
+                    <TableRow
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <Spinner
+                            android:id="@+id/spinnerScannerDevices"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+                    </TableRow>
+
+                </TableLayout>
+
+                <LinearLayout
+                    android:id="@+id/DetailsLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/custom_outer_border"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <Button
+                        android:id="@+id/buttonScan"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:onClick="softScan"
+                        android:text="Scan"
+                        android:visibility="gone" />
+
+
+                    <TextView
+                        android:id="@+id/detail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:paddingBottom="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="Details"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/line"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#D4D4D4"
+                        android:text="" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/date"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.5"
+                            android:text="DATE"
+                            android:textColor="#A29F9F"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/shift"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.5"
+                            android:text="SHIFT"
+                            android:textColor="#A29F9F"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/dateData"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.5"
+                            android:padding="5dp"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/shiftData"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.5"
+                            android:padding="5dp"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <!--dispatch form details start-->
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/guardlabel"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:paddingBottom="5dp"
+                                android:paddingTop="5dp"
+                                android:text="GUARD NAME"
+                                android:textColor="#A29F9F"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/supervisorLabel"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:paddingBottom="5dp"
+                                android:paddingTop="5dp"
+                                android:text="DISPATCH SUPERVISOR"
+                                android:textColor="#A29F9F"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <Spinner
+                                android:id="@+id/guardSelection"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:background="@android:drawable/btn_dropdown"
+                                android:dropDownWidth="400dp"
+                                android:padding="0dp"
+                                android:paddingLeft="2dp"
+                                android:spinnerMode="dropdown" />
+
+
+
+                            <Spinner
+                                android:id="@+id/supervisorSelection"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:background="@android:drawable/btn_dropdown"
+                                android:dropDownWidth="400dp"
+                                android:padding="0dp"
+                                android:paddingLeft="2dp"
+                                android:spinnerMode="dropdown" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/pickListLabel"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:paddingBottom="5dp"
+                                android:paddingTop="5dp"
+                                android:text="INVOICE NO."
+                                android:textColor="#A29F9F"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/driverLabel"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:paddingBottom="5dp"
+                                android:paddingTop="5dp"
+                                android:text="DRIVER NAME"
+                                android:textColor="#A29F9F"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <Spinner
+                                android:id="@+id/pickListSelection"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:background="@android:drawable/btn_dropdown"
+                                android:dropDownWidth="400dp"
+                                android:padding="0dp"
+                                android:paddingLeft="2dp"
+                                android:spinnerMode="dropdown"
+                                />
+
+                            <TextView
+                                android:id="@+id/pickListData"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:paddingBottom="5dp"
+                                android:paddingTop="5dp"
+                                android:text=""
+                                android:textSize="13sp"
+                                android:visibility="gone"/>
+
+                            <EditText
+                                android:id="@+id/driverName"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="1dp"
+                                android:layout_weight="0.5"
+                                android:background="@drawable/custom_border"
+                                android:ems="10"
+                                android:hint="Name"
+                                android:inputType="textPersonName"
+                                android:paddingBottom="8dp"
+                                android:paddingLeft="5dp"
+                                android:paddingTop="8dp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/gateLabel"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:paddingBottom="5dp"
+                                android:paddingTop="5dp"
+                                android:text="GATE NO."
+                                android:textColor="#A29F9F"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/mobileLabel"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:paddingBottom="5dp"
+                                android:paddingTop="5dp"
+                                android:text="DRIVER MOBILE NO."
+                                android:textColor="#A29F9F"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <Spinner
+                                android:id="@+id/gateSelection"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:background="@android:drawable/btn_dropdown"
+                                android:dropDownWidth="400dp"
+                                android:padding="0dp"
+                                android:spinnerMode="dropdown" />
+
+                            <EditText
+                                android:id="@+id/mobileNo"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="1dp"
+                                android:layout_weight="0.5"
+                                android:background="@drawable/custom_border"
+                                android:ems="10"
+                                android:hint="mobile no."
+                                android:inputType="number"
+                                android:paddingBottom="8dp"
+                                android:paddingLeft="5dp"
+                                android:paddingTop="8dp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/clientLabel"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:paddingBottom="5dp"
+                                android:paddingTop="5dp"
+                                android:text="CLIENT NAME"
+                                android:textColor="#A29F9F"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/vehicleLabel"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:paddingBottom="5dp"
+                                android:paddingTop="5dp"
+                                android:text="VEHICLE NO."
+                                android:textColor="#A29F9F"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/clientData"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.5"
+                                android:paddingBottom="5dp"
+                                android:paddingTop="5dp"
+                                android:text=""
+                                android:textSize="13sp" />
+
+                            <EditText
+                                android:id="@+id/vehicleNo"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="1dp"
+                                android:layout_weight="0.5"
+                                android:background="@drawable/custom_border"
+                                android:ems="10"
+                                android:hint="vehicle no."
+                                android:inputType="text"
+                                android:paddingBottom="8dp"
+                                android:paddingLeft="5dp"
+                                android:paddingTop="8dp" />
+
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+
+                    <!--dispatch form details ends-->
+
+                    <ScrollView
+                        android:id="@+id/scrollViewData"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/textViewData"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent" />
+                        </LinearLayout>
+                    </ScrollView>
+
+
+
+                </LinearLayout>
+
+
+                <TextView
+                    android:id="@+id/scannedLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:text="SCANNED BARCODE DATA"
+                    android:textColor="#A29F9F"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/scannedDataLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/custom_border"
+                    android:orientation="vertical"
+                    android:padding="5dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/productNameLabel"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.35"
+                            android:paddingBottom="5dp"
+                            android:paddingTop="5dp"
+                            android:text="PRODUCT TYPE"
+                            android:textColor="#A29F9F"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/productNameData"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.65"
+                            android:paddingBottom="5dp"
+                            android:paddingTop="5dp"
+                            android:text=""
+                            android:textSize="13sp" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/productCodeLabel"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.35"
+                            android:paddingBottom="5dp"
+                            android:paddingTop="5dp"
+                            android:text="PRODUCT CODE"
+                            android:textColor="#A29F9F"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/productCodeData"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.65"
+                            android:paddingBottom="5dp"
+                            android:paddingTop="5dp"
+                            android:text=""
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <TableLayout
+                    android:id="@+id/shippingOrderTable"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+
+                </TableLayout>
+
+
+            <LinearLayout
+                android:id="@+id/dispatchButtonLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/dispatchStart"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="#0865B3"
+                    android:onClick="startDispatch"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:text="START DISPATCH"
+                    android:textColor="#ffffff" />
+
+                <Button
+                    android:id="@+id/dispatchStop"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="#0865B3"
+                    android:onClick="stopDispatch"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:text="STOP DISPATCH"
+                    android:visibility="gone"
+                    android:textColor="#ffffff" />
+              </LinearLayout>
+
+
+            </LinearLayout>
+
+
+        </ScrollView>
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

@@ -20,13 +20,15 @@ public class Floor extends Activity {
 
             case R.id.storage1:{
                 Intent intent = new Intent(this, Recieve.class);
-                intent.putExtra("floor_id", "0afd3c3f-ba17-44f7-9833-28cfb2151c6a");
+//                intent.putExtra("floor_id", "0afd3c3f-ba17-44f7-9833-28cfb2151c6a");
+                intent.putExtra("floor_id", "27393cfb-809d-49b3-b366-ba0d0eab0de9");//for stage
                 startActivity(intent);
                 break;
             }
             case R.id.storage2:{
                 Intent intent = new Intent(this, Recieve.class);
-                intent.putExtra("floor_id", "98d7968c-534a-4f73-90b4-4e071cea0812");
+ //               intent.putExtra("floor_id", "98d7968c-534a-4f73-90b4-4e071cea0812");
+                intent.putExtra("floor_id", "be7662aa-080c-4b49-a49f-f4f296630f09");//for stage
                 startActivity(intent);
                 break;
             }

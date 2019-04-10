@@ -1,0 +1,4 @@
+#Wed Apr 10 15:03:20 IST 2019
+base.0=/home/ashish/samples-emdkforandroid-7_0/BarcodeSample1/app/build/intermediates/transforms/dexMerger/debug/50
+path.0=classes.dex
+renamed.0=classes.dex

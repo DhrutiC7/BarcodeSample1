@@ -22,7 +22,6 @@
             android:id="@+id/production"
             android:layout_width="250dp"
             android:layout_height="50dp"
-
             android:layout_marginBottom="5dp"
             android:background="#0865B3"
             android:onClick="showSection"
@@ -33,9 +32,19 @@
             android:id="@+id/receive"
             android:layout_width="250dp"
             android:layout_height="50dp"
+            android:layout_marginBottom="5dp"
             android:background="#0865B3"
             android:onClick="showSection"
             android:text="Receive"
+            android:textColor="#ffffff" />
+
+        <Button
+            android:id="@+id/dispatch"
+            android:layout_width="250dp"
+            android:layout_height="50dp"
+            android:background="#0865B3"
+            android:onClick="showSection"
+            android:text="Dispatch"
             android:textColor="#ffffff" />
 
         <!--</LinearLayout>-->

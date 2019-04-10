@@ -95,7 +95,8 @@ public class Production extends Activity implements EMDKListener, DataListener, 
     private final Object lock = new Object();
     private String errorColor  = "#EF3038";
     private  String okColor = "#0865B3";
-    private String warehouseOpUrl = "https://api.eronkan.com/component/warehouse-operations/producedItem";
+    RequestQueue requestQueue =null ;
+    private String warehouseOpUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/producedItem";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,6 +114,7 @@ public class Production extends Activity implements EMDKListener, DataListener, 
         shiftData = (TextView)findViewById(R.id.shiftData);
         dayCartonData = (TextView)findViewById(R.id.dayCartonData);
         shiftCartonData = (TextView)findViewById(R.id.shiftCartonData);
+        requestQueue = requestSingleton.getInstance(this.getApplicationContext()).getRequestQueue();
 //        checkBoxEAN8 = (CheckBox)findViewById(R.id.checkBoxEAN8);
 //        checkBoxEAN13 = (CheckBox)findViewById(R.id.checkBoxEAN13);
 //        checkBoxCode39 = (CheckBox)findViewById(R.id.checkBoxCode39);
@@ -146,6 +148,8 @@ public class Production extends Activity implements EMDKListener, DataListener, 
         enumerateScannerDevices();
         // Set default scanner
         spinnerScannerDevices.setSelection(defaultIndex);
+        initScanner();
+        System.out.print("end open");
     }
 
     @Override
@@ -210,8 +214,7 @@ public class Production extends Activity implements EMDKListener, DataListener, 
         params.put("id", data);
         JSONObject parameters = new JSONObject(params);
         System.out.println("params to send = " + parameters);
-        // Instantiate the RequestQueue.
-        RequestQueue queue = Volley.newRequestQueue(this);
+
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.POST, warehouseOpUrl, parameters, new Response.Listener<JSONObject>() {
 
@@ -240,9 +243,9 @@ public class Production extends Activity implements EMDKListener, DataListener, 
                     }
                 });
 
-// Add the request to the RequestQueue.
+       // Add the request to the RequestQueue.
         System.out.println("before queue add");
-        queue.add(jsonObjectRequest);
+        requestQueue.add(jsonObjectRequest);
     }
     @Override
     public void onStatus(StatusData statusData) {
@@ -250,7 +253,7 @@ public class Production extends Activity implements EMDKListener, DataListener, 
         switch(state) {
             case IDLE:
                 statusString = statusData.getFriendlyName()+" is enabled and idle...";
-                updateStatus(statusString,okColor);
+//                updateStatus(statusString,okColor);
                 // set trigger type
                 if(bSoftTriggerSelected) {
                     scanner.triggerType = TriggerType.SOFT_ONCE;
