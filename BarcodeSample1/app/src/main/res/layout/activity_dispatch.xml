@@ -20,7 +20,7 @@
             android:layout_marginBottom="10dp"
             android:gravity="center_horizontal"
             android:padding="10dp"
-            android:text="test"
+            android:text=""
             android:textAlignment="center"
             android:textColor="#ffffff" />
 
@@ -132,6 +132,10 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="0.5"
                             android:padding="5dp"
+                            android:paddingLeft="15dp"
+                            android:paddingTop="20dp"
+                            android:text=""
+                            android:textAlignment="viewEnd"
                             android:textSize="13sp" />
 
                         <TextView
@@ -221,7 +225,7 @@
                                 android:layout_weight="0.5"
                                 android:paddingBottom="5dp"
                                 android:paddingTop="5dp"
-                                android:text="INVOICE NO."
+                                android:text="PICKLIST NO."
                                 android:textColor="#A29F9F"
                                 android:textSize="12sp" />
 
@@ -278,7 +282,9 @@
                                 android:inputType="textPersonName"
                                 android:paddingBottom="8dp"
                                 android:paddingLeft="5dp"
-                                android:paddingTop="8dp" />
+                                android:paddingTop="8dp"
+                                android:text=""
+                                android:textAlignment="center" />
 
                         </LinearLayout>
 
@@ -509,8 +515,8 @@
                 <TableLayout
                     android:id="@+id/shippingOrderTable"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
+                    android:layout_height="match_parent"
+                    android:shrinkColumns="*">
 
                 </TableLayout>
 
@@ -548,10 +554,15 @@
               </LinearLayout>
 
 
+
+
             </LinearLayout>
 
 
         </ScrollView>
+
+
+
 
     </LinearLayout>
 

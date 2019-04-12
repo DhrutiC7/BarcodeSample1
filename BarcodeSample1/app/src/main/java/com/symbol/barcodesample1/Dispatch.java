@@ -46,12 +46,16 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -132,7 +136,9 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
     private MediaPlayer mp = null;
     private TextView pickListData = null;
     private Boolean gateDispatchON =false;
-    private String warehouseOpUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/dispatchItemTest";
+    Runnable delayRunnable =null;
+    Handler handler = null;
+    private String warehouseOpUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/dispatchItem";
     private String dispatchInItUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getInitData";
     private String pickListUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getPickListData";
     private String  dispatchStartUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/startDispatch";
@@ -171,6 +177,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
         dispatchStop = (Button)findViewById(R.id.dispatchStop);
         dispatchStart = (Button)findViewById(R.id.dispatchStart);
         pickListData = (TextView)findViewById(R.id.pickListData);
+        handler = new android.os.Handler(Looper.getMainLooper());
 //        checkBoxEAN8 = (CheckBox)findViewById(R.id.checkBoxEAN8);
 //        checkBoxEAN13 = (CheckBox)findViewById(R.id.checkBoxEAN13);
 //        checkBoxCode39 = (CheckBox)findViewById(R.id.checkBoxCode39);
@@ -352,11 +359,11 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
         }
     }
 
-    @Override
-    public void onStop () {
-        refreshFormData();
-        super.onStop();
-    }
+//    @Override
+//    public void onStop () {
+////        refreshFormData();
+//        super.onStop();
+//    }
     @Override
     public void onData(ScanDataCollection scanDataCollection) {
         if ((scanDataCollection != null) && (scanDataCollection.getResult() == ScannerResults.SUCCESS)) {
@@ -381,54 +388,70 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
         }
     }
 
+    private void delayMsg(String msg, String color){
+        if(delayRunnable==null)handler.removeCallbacks(delayRunnable);
+
+        delayRunnable = new Runnable() {
+            public void run() {
+                updateStatus("dispatch not started","#EF3038" );
+            }
+        };
+        handler.postDelayed(delayRunnable, 500);
+    }
+
     public void postBarcodeData(String data) throws JSONException {
         System.out.println("in postBarcodeData function" );
-        JSONObject parameters = new JSONObject();
-        parameters.put("id", data);
-        parameters.put("pick_list_data", current_picklist_data);
-        System.out.println("params to send = " + parameters);
+        if(!gateDispatchON){
+            delayMsg("dispatch not started","#EF3038");
+        }
+        else {
+            JSONObject parameters = new JSONObject();
+            parameters.put("id", data);
+            parameters.put("pick_list_data", current_picklist_data);
+            System.out.println("params to send = " + parameters);
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                (Request.Method.POST, warehouseOpUrl, parameters, new Response.Listener<JSONObject>() {
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                    (Request.Method.POST, warehouseOpUrl, parameters, new Response.Listener<JSONObject>() {
 
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            if((boolean)response.get("showBarcodeData")) {
-                                scannedLabel.setVisibility(View.VISIBLE);
-                                scannedDataLayout.setVisibility(View.VISIBLE);
-                                productNameData.setText(response.get("product_name").toString());
-                                productCodeData.setText(response.get("product_code").toString());
-//                                dateData.setText(response.get("date").toString());
-//                                shiftData.setText(response.get("shift").toString());
-                             }
-                            updateStatus(response.get("msg").toString(),response.get("msgColor").toString());
-                            getPickListData(current_picklist_data.getString("id"),true);
-                            if(response.get("msg").toString()!="Barcode Ok"){
-                                try {
-                                    stopPlaying();
-                                    mp = MediaPlayer.create(context, R.raw.error_alert);
-                                    mp.start();
-                                }catch(Exception ex){
-                                    System.out.print(ex);
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                if ((boolean) response.get("showBarcodeData")) {
+                                    scannedLabel.setVisibility(View.VISIBLE);
+                                    scannedDataLayout.setVisibility(View.VISIBLE);
+                                    productNameData.setText(response.get("product_name").toString());
+                                    productCodeData.setText(response.get("product_code").toString());
+//                                    dateData.setText(response.get("date").toString());
+//                                    shiftData.setText(response.get("shift").toString());
+                                 }
+                                updateStatus(response.get("msg").toString(), response.get("msgColor").toString());
+                                getPickListData(current_picklist_data.getString("id"), true);
+                                if (!response.get("msg").toString().equals("Barcode Ok") ) {
+                                    try {
+                                        stopPlaying();
+                                        mp = MediaPlayer.create(context, R.raw.error_alert);
+                                        mp.start();
+                                    } catch (Exception ex) {
+                                        System.out.print(ex);
+                                    }
                                 }
+                            } catch (Exception ex) {
+                                System.out.println("in catch block of request function" + ex);
                             }
-                        }catch(Exception ex){
-                            System.out.println("in catch block of request function"+ex);
                         }
-                    }
-                }, new Response.ErrorListener() {
+                    }, new Response.ErrorListener() {
 
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        updateStatus("System Error",errorColor);
-                        System.out.println("in error response block"+error.getMessage());
-                    }
-                });
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            updateStatus("System Error", errorColor);
+                            System.out.println("in error response block" + error.getMessage());
+                        }
+                    });
 
 // Add the request to the RequestQueue.
-        System.out.println("before queue add");
-        requestQueue.add(jsonObjectRequest);
+            System.out.println("before queue add");
+            requestQueue.add(jsonObjectRequest);
+            }
     }
     @Override
     public void onStatus(StatusData statusData) {
@@ -863,6 +886,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
         TextView tv = null;
         clientData.setText(allShippingArr.getJSONArray(0).getJSONObject(0).getString("client_name"));
         TableLayout ll = (TableLayout) findViewById(R.id.shippingOrderTable);
+        ll.setStretchAllColumns(true);
         TableRow.LayoutParams tlp = null;
         ll.removeAllViews();
 
@@ -880,7 +904,10 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                     makeAndSetColumn(shippingObj.getString("product_name"),row);
 //                    makeAndSetColumn(shippingObj.getString("weight"),row);
                     makeAndSetColumn(shippingObj.getString("planned_quantity"),row);
-                    if(showActual)makeAndSetColumn(shippingObj.getString("actual_quantity"),row);
+                    if(showActual){
+                        makeAndSetColumn(shippingObj.getString("actual_quantity"),row);
+                        makeAndSetColumn(shippingObj.getString("row"),row);
+                    }
                     ll.addView(row);
                 }catch(Exception ex){
                     System.out.println(ex);
@@ -902,20 +929,29 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
         row= new TableRow(context);
         makeAndSetColumn("Product", row);
 //        makeAndSetColumn("Weight", row);
-        makeAndSetColumn("Planned Quantity", row);
-        if(showActual)makeAndSetColumn("Actual Quantity", row);
+        makeAndSetColumn("Planned Qty", row);
+        if(showActual){
+            makeAndSetColumn("Actual Qty", row);
+            makeAndSetColumn("row", row);
+        }
         ll.addView(row);
 
     }
 
     public void makeAndSetColumn(String data, TableRow row){
+
         TextView tv = new TextView(context);
         tv.setText(data);
+        tv.setPadding(15,5,0,5);
         row.addView(tv);
+//        ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) tv.getLayoutParams();
+//        tv.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+//        tv.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+//        tv.setLayoutParams(params);
     }
     public TableRow.LayoutParams getTableParam(float  weight){
         TableRow.LayoutParams tlp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, weight);
-       return tlp;
+        return tlp;
     }
     public void startDispatch(View view) throws org.json.JSONException{
         if(!checkDispatchValidity()){
