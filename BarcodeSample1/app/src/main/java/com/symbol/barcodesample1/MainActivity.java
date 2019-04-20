@@ -25,11 +25,18 @@ public class MainActivity extends Activity {
             }
             case R.id.receive:{
                 Intent intent = new Intent(this, Floor.class);
+                intent.putExtra("activity_name", "com.symbol.barcodesample1.Recieve");
                 startActivity(intent);
                 break;
             }
             case R.id.dispatch:{
                 Intent intent = new Intent(this, Dispatch.class);
+                startActivity(intent);
+                break;
+            }
+            case R.id.transfer:{
+                Intent intent = new Intent(this, Floor.class);
+                intent.putExtra("activity_name", "com.symbol.barcodesample1.Transfer");
                 startActivity(intent);
                 break;
             }

@@ -200,7 +200,6 @@
                                 android:spinnerMode="dropdown" />
 
 
-
                             <Spinner
                                 android:id="@+id/supervisorSelection"
                                 android:layout_width="0dp"
@@ -256,8 +255,7 @@
                                 android:dropDownWidth="400dp"
                                 android:padding="0dp"
                                 android:paddingLeft="2dp"
-                                android:spinnerMode="dropdown"
-                                />
+                                android:spinnerMode="dropdown" />
 
                             <TextView
                                 android:id="@+id/pickListData"
@@ -268,7 +266,7 @@
                                 android:paddingTop="5dp"
                                 android:text=""
                                 android:textSize="13sp"
-                                android:visibility="gone"/>
+                                android:visibility="gone" />
 
                             <EditText
                                 android:id="@+id/driverName"
@@ -399,7 +397,6 @@
                                 android:layout_marginTop="1dp"
                                 android:layout_weight="0.5"
                                 android:background="@drawable/custom_border"
-                                android:ems="10"
                                 android:hint="vehicle no."
                                 android:inputType="text"
                                 android:paddingBottom="8dp"
@@ -432,10 +429,16 @@
                     </ScrollView>
 
 
-
                 </LinearLayout>
 
 
+            <LinearLayout
+                android:id="@+id/scannedDataDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="5dp"
+                android:visibility="gone">
                 <TextView
                     android:id="@+id/scannedLabel"
                     android:layout_width="match_parent"
@@ -443,8 +446,7 @@
                     android:padding="5dp"
                     android:text="SCANNED BARCODE DATA"
                     android:textColor="#A29F9F"
-                    android:textSize="12sp"
-                    android:visibility="gone" />
+                    android:textSize="12sp" />
 
                 <LinearLayout
                     android:id="@+id/scannedDataLayout"
@@ -452,8 +454,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/custom_border"
                     android:orientation="vertical"
-                    android:padding="5dp"
-                    android:visibility="gone">
+                    android:padding="5dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -511,56 +512,91 @@
                     </LinearLayout>
 
                 </LinearLayout>
+            </LinearLayout>
 
-                <TableLayout
-                    android:id="@+id/shippingOrderTable"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:shrinkColumns="*">
+                <HorizontalScrollView
+                    android:id="@+id/horizontalView"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="horizontal|vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_marginTop="5dip">
 
-                </TableLayout>
 
+                    <TableLayout
+                        android:id="@+id/shippingOrderTable"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+-->
+                    </TableLayout>
+                </HorizontalScrollView>
 
             <LinearLayout
-                android:id="@+id/dispatchButtonLayout"
+                android:id="@+id/sealLayout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="8dp"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="center">
+                android:visibility="gone">
 
-                <Button
-                    android:id="@+id/dispatchStart"
-                    android:layout_width="wrap_content"
+            <TextView
+                    android:id="@+id/sealLabel"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="#0865B3"
-                    android:onClick="startDispatch"
-                    android:paddingLeft="10dp"
-                    android:paddingRight="10dp"
-                    android:text="START DISPATCH"
-                    android:textColor="#ffffff" />
+                    android:text="SEAL NO."
+                    android:textColor="#A29F9F"
+                    android:textSize="12sp" />
 
-                <Button
-                    android:id="@+id/dispatchStop"
-                    android:layout_width="wrap_content"
+                <EditText
+                    android:id="@+id/sealData"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="#0865B3"
-                    android:onClick="stopDispatch"
-                    android:paddingLeft="10dp"
-                    android:paddingRight="10dp"
-                    android:text="STOP DISPATCH"
-                    android:visibility="gone"
-                    android:textColor="#ffffff" />
-              </LinearLayout>
+                    android:layout_marginTop="1dp"
+                    android:background="@drawable/custom_border"
+                    android:hint="Type Seal No."
+                    android:inputType="text"
+                    android:paddingBottom="8dp"
+                    android:paddingLeft="5dp"
+                    android:paddingTop="8dp"
+                    android:text="" />
 
+            </LinearLayout>
 
+                <LinearLayout
+                    android:id="@+id/dispatchButtonLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
 
+                    <Button
+                        android:id="@+id/dispatchStart"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="#0865B3"
+                        android:onClick="startDispatch"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:text="START DISPATCH"
+                        android:textColor="#ffffff" />
+
+                    <Button
+                        android:id="@+id/dispatchStop"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="#0865B3"
+                        android:onClick="stopDispatch"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:text="STOP DISPATCH"
+                        android:textColor="#ffffff"
+                        android:visibility="gone" />
+                </LinearLayout>
 
             </LinearLayout>
 
 
         </ScrollView>
-
 
 
 

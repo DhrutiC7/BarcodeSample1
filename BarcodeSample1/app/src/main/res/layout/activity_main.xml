@@ -42,10 +42,21 @@
             android:id="@+id/dispatch"
             android:layout_width="250dp"
             android:layout_height="50dp"
+            android:layout_marginBottom="5dp"
             android:background="#0865B3"
             android:onClick="showSection"
             android:text="Dispatch"
             android:textColor="#ffffff" />
+
+        <Button
+            android:id="@+id/transfer"
+            android:layout_width="250dp"
+            android:layout_height="50dp"
+            android:background="#0865B3"
+            android:onClick="showSection"
+            android:text="Transfer"
+            android:textColor="#ffffff"
+            android:visibility="gone"/>
 
         <!--</LinearLayout>-->
 

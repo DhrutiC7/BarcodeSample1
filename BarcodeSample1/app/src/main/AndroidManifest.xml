@@ -25,7 +25,8 @@
         <activity android:name=".Recieve" />
         <activity android:name=".Production" />
         <activity android:name=".Floor" />
-        <activity android:name=".Dispatch"></activity>
+        <activity android:name=".Dispatch" />
+        <activity android:name=".Transfer"></activity>
     </application>
 
 </manifest>

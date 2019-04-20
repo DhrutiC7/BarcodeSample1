@@ -44,6 +44,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -52,6 +53,7 @@ import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -62,6 +64,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.ScrollView;
@@ -138,7 +141,10 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
     private Boolean gateDispatchON =false;
     Runnable delayRunnable =null;
     Handler handler = null;
-    private String warehouseOpUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/dispatchItem";
+    private LinearLayout sealLayout =null;
+    private EditText sealData =null;
+    private LinearLayout scannedDataDetails =null;
+    private String warehouseOpUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/dispatchPickListItem";
     private String dispatchInItUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getInitData";
     private String pickListUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getPickListData";
     private String  dispatchStartUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/startDispatch";
@@ -178,6 +184,9 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
         dispatchStart = (Button)findViewById(R.id.dispatchStart);
         pickListData = (TextView)findViewById(R.id.pickListData);
         handler = new android.os.Handler(Looper.getMainLooper());
+        sealLayout = (LinearLayout) findViewById(R.id.sealLayout);
+        sealData = (EditText) findViewById(R.id.sealData);
+        scannedDataDetails = (LinearLayout) findViewById(R.id.scannedDataDetails);
 //        checkBoxEAN8 = (CheckBox)findViewById(R.id.checkBoxEAN8);
 //        checkBoxEAN13 = (CheckBox)findViewById(R.id.checkBoxEAN13);
 //        checkBoxCode39 = (CheckBox)findViewById(R.id.checkBoxCode39);
@@ -284,7 +293,13 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                         pick_list_id = (String) pickList.getJSONObject(position-1).get("id");
                         getPickListData((String) pickList.getJSONObject(position-1).get("id"), false);
                     }
-                    else pick_list_id = null;
+                    else {
+                        pick_list_id = null;
+                        current_picklist_data =null;
+                        TableLayout ll = (TableLayout) findViewById(R.id.shippingOrderTable);
+                        ll.removeAllViews();
+                        clientData.setText("");
+                    }
 
 
                 }catch(Exception ex){
@@ -380,14 +395,6 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
         }
     }
 
-    private void stopPlaying() {
-        if (mp != null) {
-            mp.stop();
-            mp.release();
-            mp = null;
-        }
-    }
-
     private void delayMsg(String msg, String color){
         if(delayRunnable==null)handler.removeCallbacks(delayRunnable);
 
@@ -417,8 +424,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                         public void onResponse(JSONObject response) {
                             try {
                                 if ((boolean) response.get("showBarcodeData")) {
-                                    scannedLabel.setVisibility(View.VISIBLE);
-                                    scannedDataLayout.setVisibility(View.VISIBLE);
+                                    scannedDataDetails.setVisibility(View.VISIBLE);
                                     productNameData.setText(response.get("product_name").toString());
                                     productCodeData.setText(response.get("product_code").toString());
 //                                    dateData.setText(response.get("date").toString());
@@ -860,7 +866,8 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                             setCurrentPicklistData();
                             lockDispatchForm();
                             showShippingOrderData(response,showActual);
-
+                            toggleSealLayout();
+                            System.out.print("end");
                         }catch(Exception ex){
                             System.out.println("in catch block of request function"+ex);
                         }
@@ -901,12 +908,16 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                 else tlp = getTableParam(0.33f);
                 try {
                     shippingObj = shippingArr.getJSONObject(j);
-                    makeAndSetColumn(shippingObj.getString("product_name"),row);
+                    makeAndSetColumn(shippingObj.getString("product_name"),row,1);
 //                    makeAndSetColumn(shippingObj.getString("weight"),row);
-                    makeAndSetColumn(shippingObj.getString("planned_quantity"),row);
+                    makeAndSetColumn(shippingObj.getString("planned_quantity"),row,2);
                     if(showActual){
-                        makeAndSetColumn(shippingObj.getString("actual_quantity"),row);
-                        makeAndSetColumn(shippingObj.getString("row"),row);
+                        makeAndSetColumn(shippingObj.getString("actual_quantity"),row,3);
+                        makeAndSetColumn(shippingObj.getString("row"),row, 4);
+                    }
+                    else {
+                        makeAndSetColumn("",row,3);
+                        makeAndSetColumn("",row, 4);
                     }
                     ll.addView(row);
                 }catch(Exception ex){
@@ -923,31 +934,46 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
         TableLayout ll = (TableLayout) findViewById(R.id.shippingOrderTable);
         TableRow row= new TableRow(context);
         TableRow.LayoutParams tlp = showActual ? getTableParam(0.25f) : getTableParam(0.33f);
-        makeAndSetColumn("Sales Order No. : ", row);
-        makeAndSetColumn(shippingArr.getJSONObject(0).getString("sales_order_no"),row);
+        setSalesColumn("Sales Order No. : ", row);
+        setSalesColumn(shippingArr.getJSONObject(0).getString("sales_order_no"),row);
         ll.addView(row);
         row= new TableRow(context);
-        makeAndSetColumn("Product", row);
+        makeAndSetColumn("Product", row,1);
 //        makeAndSetColumn("Weight", row);
-        makeAndSetColumn("Planned Qty", row);
-        if(showActual){
-            makeAndSetColumn("Actual Qty", row);
-            makeAndSetColumn("row", row);
-        }
+        makeAndSetColumn("Planned Qty", row,2);
+        makeAndSetColumn("Actual Qty", row,3);
+        makeAndSetColumn("row", row,4);
+
         ll.addView(row);
 
     }
 
-    public void makeAndSetColumn(String data, TableRow row){
+    public void setSalesColumn(String data, TableRow row){
 
         TextView tv = new TextView(context);
         tv.setText(data);
-        tv.setPadding(15,5,0,5);
+//        tv.setPadding(15,5,0,5);
+//        tv.setGravity(Gravity.CENTER);
+//        if(colNo==1)tv.setWidth(150);
         row.addView(tv);
-//        ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) tv.getLayoutParams();
-//        tv.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
-//        tv.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+//        TableRow.LayoutParams params =  new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,TableRow.LayoutParams.MATCH_PARENT);
 //        tv.setLayoutParams(params);
+//        tv.setBackgroundResource(R.drawable.custom_outer_border);
+    }
+
+    public void makeAndSetColumn(String data, TableRow row,int colNo){
+
+        TextView tv = new TextView(context);
+        tv.setText(data);
+        tv.setPadding(10,5,10,5);
+        tv.setGravity(Gravity.CENTER);
+        if(colNo==1)tv.setWidth(170);
+        else if(colNo==2 )tv.setWidth(105);
+        else if(colNo==3 )tv.setWidth(80);
+        row.addView(tv);
+        TableRow.LayoutParams params =  new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,TableRow.LayoutParams.MATCH_PARENT);
+        tv.setLayoutParams(params);
+        tv.setBackgroundResource(R.drawable.custom_outer_border);
     }
     public TableRow.LayoutParams getTableParam(float  weight){
         TableRow.LayoutParams tlp = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, weight);
@@ -975,6 +1001,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
             parameters.put("driver_mobile_number", mobileNo.getText());
             parameters.put("vehicle_no", vehicleNo.getText());
             parameters.put("gate_no", gate_no);
+            parameters.put("guard_id", guard_id);
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                     (Request.Method.POST, dispatchStartUrl, parameters, new Response.Listener<JSONObject>() {
 
@@ -986,6 +1013,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                                 gateDispatchON = true;
                                 toggleDispatchButtons();
                                 toggleDropDowns();
+                                toggleSealLayout();
                                 lockDispatchForm();
 
                             } catch (Exception ex) {
@@ -1008,52 +1036,62 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
     }
 
     public void stopDispatch(View view) throws org.json.JSONException{
-        JSONObject parameters = new JSONObject();
-        final String id = current_picklist_data.getString("id");
-        Date currentTime = Calendar.getInstance().getTime();
-        parameters.put("pick_list_id",id);
-        parameters.put("dispatch_stop_time",currentTime);
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                (Request.Method.POST, dispatchStopUrl, parameters, new Response.Listener<JSONObject>() {
+        if(checkStopValidity()){
+            JSONObject parameters = new JSONObject();
+            final String id = current_picklist_data.getString("id");
+            final String seal_no = sealData.getText().toString();
+            Date currentTime = Calendar.getInstance().getTime();
+            parameters.put("pick_list_id", id);
+            parameters.put("dispatch_stop_time", currentTime);
+            parameters.put("seal_no", seal_no);
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                    (Request.Method.POST, dispatchStopUrl, parameters, new Response.Listener<JSONObject>() {
 
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            System.out.println(response);
-                            refreshFormData();
-                            toggleDispatchButtons();
-                            toggleDropDowns();
-                            releaseDispatchLock();
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                System.out.println(response);
+                                refreshFormData();
+                                toggleDispatchButtons();
+                                toggleDropDowns();
+                                toggleSealLayout();
+                                releaseDispatchLock();
+                                current_picklist_data =null;
+                                gateDispatchON =false;
+                                scannedDataDetails.setVisibility(View.GONE);
 
-                        }catch(Exception ex){
-                            System.out.println("in catch block of request function"+ex);
+                            } catch (Exception ex) {
+                                System.out.println("in catch block of request function" + ex);
+                            }
                         }
-                    }
-                }, new Response.ErrorListener() {
+                    }, new Response.ErrorListener() {
 
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        updateStatus("System Error",errorColor);
-                        System.out.println("in error response block"+error.getMessage());
-                    }
-                });
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            updateStatus("System Error", errorColor);
+                            System.out.println("in error response block" + error.getMessage());
+                        }
+                    });
 
 // Add the request to the RequestQueue.
-        System.out.println("before queue add");
-        requestQueue.add(jsonObjectRequest);
+            System.out.println("before queue add");
+            requestQueue.add(jsonObjectRequest);
+        }
     }
 
     public boolean checkDispatchValidity() {
-        String a = driverName.getText().toString();
-        String b = mobileNo.getText().toString();
-        String c = vehicleNo.getText().toString();
-
-        if(driverName.getText().toString().trim().equals("")){
-            System.out.println("ok");
-        }
 
         if(gate_no == null || pick_list_id == null || dispatch_supervisor_id == null || guard_id == null
                 || driverName.getText().toString().trim().equals("") || mobileNo.getText().toString().trim().equals("") || vehicleNo.getText().toString().trim().equals("")){
+            return false;
+        }
+        else return true;
+    }
+
+    public boolean checkStopValidity() {
+
+        if(sealData.getText().toString().trim().equals("")){
+            updateStatus("Enter Seal Details",errorColor);
             return false;
         }
         else return true;
@@ -1090,7 +1128,15 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
             pickListData.setVisibility(View.VISIBLE);
         }
     }
+    public void toggleSealLayout(){
+        if(sealLayout.getVisibility() == View.VISIBLE){
+            sealLayout.setVisibility(View.GONE);
+        }
+        else {
+            sealLayout.setVisibility(View.VISIBLE);
+        }
 
+    }
     public void refreshFormData(){
 //      gateSelection.setSelection(0);
       pickListSelection.setSelection(0);
@@ -1122,7 +1168,8 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
         driverName.setEnabled(true);
     }
     public void checkRunningDispatch(String gateNo) throws org.json.JSONException{
-       // refreshFormData();
+         updateStatus("changing gate no.....",okColor);
+         disableDispatchButtons();
         JSONObject parameters = new JSONObject();
 
         parameters.put("gate_no",gateNo);
@@ -1138,7 +1185,8 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                                 gateDispatchON=true;
                             }
                             else{
-                                if(gateDispatchON){
+                                if(gateDispatchON)//if dispatch is on at previous selected gate
+                                {
                                     refreshFormData();
                                     releaseDispatchLock();
                                     toggleDropDowns();
@@ -1147,8 +1195,11 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                                 }
                                 gateDispatchON =false;
                             }
+                            updateStatus("gate changed successfully",okColor);
+                            enableDispatchButtons();
 
                         }catch(Exception ex){
+                            updateStatus("error: gate not changed",errorColor);
                             System.out.println("in catch block of request function"+ex);
                         }
                     }
@@ -1158,6 +1209,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                     public void onErrorResponse(VolleyError error) {
                         updateStatus("System Error",errorColor);
                         System.out.println("in error response block"+error.getMessage());
+                        enableDispatchButtons();
                     }
                 });
 
@@ -1167,28 +1219,45 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
     }
 
     public int getIndexFromId(String id, JSONArray list) throws JSONException{
-
+        String str="";
         for(int i=0;i<list.length();i++){
-            if(list.getJSONObject(i).get("id") == id){
+            if(list.getJSONObject(i).get("id").toString().equals(id)){
                 return i;
             }
         }
-        return 1;
+        return -1;
     }
 
      public void setCurrentPicklistData() throws JSONException {
          int guard_idx = getIndexFromId(current_picklist_data.getString("guard_id"),guardList) + 1;
          int supervisor_idx = getIndexFromId(current_picklist_data.getString("dispatch_supervisor_id"), supervisorList) + 1;
          int gate_idx = Integer.parseInt(current_picklist_data.getString("gate_no"))+1;
-         //int pickList_idx = getIndexFromId(current_picklist_data.getString("id"), pickList) + 1;
+
          guardSelection.setSelection(guard_idx);
          supervisorSelection.setSelection(supervisor_idx);
-        // pickListSelection.setSelection(pickList_idx);
-//         gateSelection.setSelection(gate_idx);
+
          vehicleNo.setText(current_picklist_data.getString("vehicle_no"));
          driverName.setText(current_picklist_data.getString("driver_name"));
          mobileNo.setText(current_picklist_data.getString("driver_mobile_number"));
          clientData.setText(current_picklist_data.getJSONArray("shippingOrders").getJSONArray(0).getJSONObject(0).getString("client_name"));
 
      }
+
+    private void stopPlaying() {
+        if (mp != null) {
+            mp.stop();
+            mp.release();
+            mp = null;
+        }
+    }
+
+    private void enableDispatchButtons() {
+        dispatchStart.setEnabled(true);
+        dispatchStart.setEnabled(true);
+    }
+
+    private void disableDispatchButtons() {
+        dispatchStart.setEnabled(false);
+        dispatchStart.setEnabled(false);
+    }
 }
