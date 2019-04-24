@@ -95,7 +95,7 @@ public class Recieve extends Activity implements EMDKListener, DataListener, Sta
     private  String okColor = "#0865B3";
     private String floorId = "";
     RequestQueue requestQueue =null ;
-    private String warehouseOpUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/receiveables";
+    private String warehouseOpUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/receiveablesNoFIFO";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

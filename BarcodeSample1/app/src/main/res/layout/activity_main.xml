@@ -56,7 +56,7 @@
             android:onClick="showSection"
             android:text="Transfer"
             android:textColor="#ffffff"
-            android:visibility="gone"/>
+            android:visibility="visible"/>
 
         <!--</LinearLayout>-->
 

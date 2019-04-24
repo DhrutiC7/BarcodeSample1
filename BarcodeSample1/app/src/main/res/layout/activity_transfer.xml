@@ -8,7 +8,7 @@
 
 
     <LinearLayout
-        android:id="@+id/productionLayout"
+        android:id="@+id/transferLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -33,7 +33,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="5dp"
-            android:background="@drawable/custom_outer_border">
+            android:background="@drawable/custom_outer_border"
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/detail"
@@ -97,79 +98,79 @@
                     android:textSize="13sp"/>
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/textViewD"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="5dp"
-                android:text="SCANNED BARCODE DATA"
-                android:textColor="#A29F9F"
-                android:textSize="12sp"/>
+            <!--<TextView-->
+                <!--android:id="@+id/textViewD"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:padding="5dp"-->
+                <!--android:text="SCANNED BARCODE DATA"-->
+                <!--android:textColor="#A29F9F"-->
+                <!--android:textSize="12sp"/>-->
 
-            <LinearLayout
-                android:id="@+id/scannedDataLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="5dp"
-                android:background="@drawable/custom_border">
+            <!--<LinearLayout-->
+                <!--android:id="@+id/scannedDataLayout"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:orientation="vertical"-->
+                <!--android:padding="5dp"-->
+                <!--android:background="@drawable/custom_border">-->
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
+                <!--<LinearLayout-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="match_parent"-->
+                    <!--android:orientation="horizontal">-->
 
-                    <TextView
-                        android:id="@+id/productNameLabel"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.35"
-                        android:paddingBottom="5dp"
-                        android:paddingTop="5dp"
-                        android:text="PRODUCT TYPE"
-                        android:textColor="#A29F9F"
-                        android:textSize="12sp"/>
+                    <!--<TextView-->
+                        <!--android:id="@+id/productNameLabel"-->
+                        <!--android:layout_width="0dp"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_weight="0.35"-->
+                        <!--android:paddingBottom="5dp"-->
+                        <!--android:paddingTop="5dp"-->
+                        <!--android:text="PRODUCT TYPE"-->
+                        <!--android:textColor="#A29F9F"-->
+                        <!--android:textSize="12sp"/>-->
 
-                    <TextView
-                        android:id="@+id/productNameData"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.65"
-                        android:paddingBottom="5dp"
-                        android:paddingTop="5dp"
-                        android:text=""
-                        android:textSize="13sp"/>
+                    <!--<TextView-->
+                        <!--android:id="@+id/productNameData"-->
+                        <!--android:layout_width="0dp"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_weight="0.65"-->
+                        <!--android:paddingBottom="5dp"-->
+                        <!--android:paddingTop="5dp"-->
+                        <!--android:text=""-->
+                        <!--android:textSize="13sp"/>-->
 
-                </LinearLayout>
+                <!--</LinearLayout>-->
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
+                <!--<LinearLayout-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="match_parent"-->
+                    <!--android:orientation="horizontal">-->
 
-                    <TextView
-                        android:id="@+id/productCodeLabel"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.35"
-                        android:paddingBottom="5dp"
-                        android:paddingTop="5dp"
-                        android:text="PRODUCT CODE"
-                        android:textColor="#A29F9F"
-                        android:textSize="12sp"/>
+                    <!--<TextView-->
+                        <!--android:id="@+id/productCodeLabel"-->
+                        <!--android:layout_width="0dp"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_weight="0.35"-->
+                        <!--android:paddingBottom="5dp"-->
+                        <!--android:paddingTop="5dp"-->
+                        <!--android:text="PRODUCT CODE"-->
+                        <!--android:textColor="#A29F9F"-->
+                        <!--android:textSize="12sp"/>-->
 
-                    <TextView
-                        android:id="@+id/productCodeData"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.65"
-                        android:paddingBottom="5dp"
-                        android:paddingTop="5dp"
-                        android:text=""
-                        android:textSize="13sp"/>
-                </LinearLayout>
+                    <!--<TextView-->
+                        <!--android:id="@+id/productCodeData"-->
+                        <!--android:layout_width="0dp"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_weight="0.65"-->
+                        <!--android:paddingBottom="5dp"-->
+                        <!--android:paddingTop="5dp"-->
+                        <!--android:text=""-->
+                        <!--android:textSize="13sp"/>-->
+                <!--</LinearLayout>-->
 
-            </LinearLayout>
+            <!--</LinearLayout>-->
 
 
             <LinearLayout
@@ -208,6 +209,80 @@
             </LinearLayout>
         </LinearLayout>
 
+
+        <TextView
+            android:id="@+id/textViewD"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:text="SCANNED BARCODE DATA"
+            android:textColor="#A29F9F"
+            android:textSize="12sp"/>
+
+        <LinearLayout
+            android:id="@+id/scannedDataLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="5dp"
+            android:background="@drawable/custom_border">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/productNameLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.35"
+                    android:paddingBottom="5dp"
+                    android:paddingTop="5dp"
+                    android:text="PRODUCT TYPE"
+                    android:textColor="#A29F9F"
+                    android:textSize="12sp"/>
+
+                <TextView
+                    android:id="@+id/productNameData"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.65"
+                    android:paddingBottom="5dp"
+                    android:paddingTop="5dp"
+                    android:text=""
+                    android:textSize="13sp"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/productCodeLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.35"
+                    android:paddingBottom="5dp"
+                    android:paddingTop="5dp"
+                    android:text="PRODUCT CODE"
+                    android:textColor="#A29F9F"
+                    android:textSize="12sp"/>
+
+                <TextView
+                    android:id="@+id/productCodeData"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.65"
+                    android:paddingBottom="5dp"
+                    android:paddingTop="5dp"
+                    android:text=""
+                    android:textSize="13sp"/>
+            </LinearLayout>
+
+        </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -264,6 +339,38 @@
                 android:padding="0dp"
                 android:paddingLeft="2dp"
                 android:spinnerMode="dropdown" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/transferButtonLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/transferStart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#0865B3"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="START TRANSFER"
+                android:textColor="#ffffff"
+                android:onClick="startTransfer"/>
+
+            <Button
+                android:id="@+id/transferStop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#0865B3"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="STOP TRANSFER"
+                android:textColor="#ffffff"
+                android:visibility="gone"
+                android:onClick="stopTransfer"/>
         </LinearLayout>
     </LinearLayout>
 

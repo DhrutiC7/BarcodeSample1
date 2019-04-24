@@ -14,9 +14,11 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.JsonArray;
 import com.symbol.emdk.EMDKManager;
 import com.symbol.emdk.EMDKResults;
 import com.symbol.emdk.EMDKManager.EMDKListener;
@@ -48,6 +50,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
@@ -59,6 +62,7 @@ import android.widget.AdapterView.OnItemSelectedListener;
 import android.content.pm.ActivityInfo;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Transfer extends Activity implements EMDKListener, DataListener, StatusListener, ScannerConnectionListener, OnCheckedChangeListener {
@@ -99,7 +103,13 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
     private Spinner regionSelection = null;
     private JSONArray storageData = null;
     RequestQueue requestQueue =null ;
-    private String warehouseOpUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/receiveables";
+    ArrayAdapter<String> adapter = null;
+    private String storageList[] = null;
+    private String regionList[] = null;
+    private Button transferStart = null;
+    private Button transferStop = null;
+    private String fetchStorageRegionsUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_transfer_form_api/getStorageRegions";
+    private String warehouseOpUrl="https://stageapi.eronkan.com:443/component/warehouse-operations/transferItem";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,66 +128,66 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
         storageSelection = (Spinner) findViewById(R.id.storageSelection);
         regionSelection = (Spinner) findViewById(R.id.regionSelection);
         floorId =  getIntent().getStringExtra("floor_id");
+        transferStart = (Button)findViewById(R.id.transferStart);
+        transferStop = (Button)findViewById(R.id.transferStop);
         requestQueue = requestSingleton.getInstance(this.getApplicationContext()).getRequestQueue();
         EMDKResults results = EMDKManager.getEMDKManager(getApplicationContext(), this);
         if (results.statusCode != EMDKResults.STATUS_CODE.SUCCESS) {
             updateStatus("EMDKManager object request failed!",errorColor);
             return;
         }
-
-
-        textViewData.setSelected(true);
-        textViewData.setMovementMethod(new ScrollingMovementMethod());
-//        initTransferForm();
+        try {
+            getStorageRegions();
+        }catch(Exception ex){
+            System.out.print("exception in getting storageRegions,function:create()"+ex);
+        }
     }
     @Override
     protected void onStart()
     {
         super.onStart();
-//        storageSelection.setOnItemSelectedListener(new OnItemSelectedListener() {
-//            @Override
-//            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-//                // your code here
-//                try {
-//                    if (position != 0) {
-//                        getRegions();
-//                    }
-//                    else gate_no = null;
-//                }catch(Exception ex){
-//                    System.out.println("error in getting guardlist data onStart: guardSelection listener");
-//                }
-//
-//            }
-//
-//            @Override
-//            public void onNothingSelected(AdapterView<?> parentView) {
-//                // your code here
-//
-//            }
-//
-//        });
-//        regionSelection.setOnItemSelectedListener(new OnItemSelectedListener() {
-//            @Override
-//            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-//                // your code here
-//                try {
-//                    if (position != 0) {
-//                        guard_id = (String) guardList.getJSONObject(position-1).get("id");
-//                    }
-//                    else guard_id = null;
-//                }catch(Exception ex){
-//                    System.out.println("error in getting guardlist data onStart: guardSelection listener");
-//                }
-//
-//            }
-//
-//            @Override
-//            public void onNothingSelected(AdapterView<?> parentView) {
-//                // your code here
-//
-//            }
-//
-//        });
+        storageSelection.setOnItemSelectedListener(new OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // your code here
+                try {
+                    if (position != 0) {
+                        storageChange(position);
+                    }
+                }catch(Exception ex){
+                    System.out.println("error in storageSelection onStart: storageSelection listener");
+                }
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // your code here
+
+            }
+
+        });
+        regionSelection.setOnItemSelectedListener(new OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // your code here
+                try {
+                    if (position != 0) {
+
+                    }
+                }catch(Exception ex){
+                    System.out.println("error in getting guardlist data onStart: guardSelection listener");
+                }
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // your code here
+
+            }
+
+        });
     }
     @Override
     public void onOpened(EMDKManager emdkManager) {
@@ -188,7 +198,7 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
         // Enumerate scanner devices
         enumerateScannerDevices();
         // Set default scanner
-        spinnerScannerDevices.setSelection(defaultIndex);
+//        spinnerScannerDevices.setSelection(defaultIndex);
         // Initialize scanner
         initScanner();
     }
@@ -245,49 +255,54 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
             updateData("<font color='gray'>" + "Status" + "</font> : " + "OK");
             for(ScanData data : scanData) {
                 System.out.println("scan data = " + data.getData());
-                postBarcodeData(data.getData());
+                try {
+                    postBarcodeData(data.getData());
+                }catch(Exception ex){
+                    System.out.println("exception function : onData "+ex);
+                }
             }
         }
     }
-    public void postBarcodeData(String data) {
-        System.out.println("in postBarcodeData function" );
-        Map<String, String> params = new HashMap();
-        params.put("id", data);
-        params.put("floor_id", floorId);
-        JSONObject parameters = new JSONObject(params);
-        System.out.println("params to send = " + parameters);
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                (Request.Method.POST, warehouseOpUrl, parameters, new Response.Listener<JSONObject>() {
+    public void postBarcodeData(String data)throws JSONException {
+        if(!checkTransferStatus()){
+            updateStatus("Select Both Storage and Region",errorColor);
+        }
+        else {
+            String selected_region_id = getSelectedRegionId();
+            JSONObject parameters = new JSONObject();
+            parameters.put("id", data);
+            parameters.put("region_id", selected_region_id);
 
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            if((boolean)response.get("showBarcodeData")) {
-                                productNameData.setText(response.get("product_name").toString());
-                                productCodeData.setText(response.get("product_code").toString());
-                                allocatedRowData.setText(response.get("region").toString());
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                    (Request.Method.POST, warehouseOpUrl, parameters, new Response.Listener<JSONObject>() {
+
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                if ((boolean) response.get("showBarcodeData")) {
+                                    productNameData.setText(response.get("product_name").toString());
+                                    productCodeData.setText(response.get("product_code").toString());
+                                }
+
+                                updateStatus(response.get("msg").toString(), response.get("msgColor").toString());
+                            } catch (Exception ex) {
+                                System.out.println("in catch block of request function" + ex);
                             }
-
-                            dateData.setText(response.get("date").toString());
-                            shiftData.setText(response.get("shift").toString());
-                            updateStatus(response.get("msg").toString(),response.get("msgColor").toString());
-                        }catch(Exception ex){
-                            System.out.println("in catch block of request function"+ex);
                         }
-                    }
-                }, new Response.ErrorListener() {
+                    }, new Response.ErrorListener() {
 
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        updateStatus("System Error",errorColor);
-                        System.out.println("in error response block"+error.getMessage());
-                    }
-                });
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            updateStatus("System Error", errorColor);
+                            System.out.println("in error response block" + error.getMessage());
+                        }
+                    });
 
 // Add the request to the RequestQueue.
-        System.out.println("before queue add");
-        requestQueue.add(jsonObjectRequest);
+            System.out.println("before queue add");
+            requestQueue.add(jsonObjectRequest);
+        }
     }
     @Override
     public void onStatus(StatusData statusData) {
@@ -443,9 +458,9 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
             else {
                 updateStatus("Failed to get the list of supported scanner devices! Please close and restart the application.",errorColor);
             }
-            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(Transfer.this, android.R.layout.simple_spinner_item, friendlyNameList);
-            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerScannerDevices.setAdapter(spinnerAdapter);
+//            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(Transfer.this, android.R.layout.simple_spinner_item, friendlyNameList);
+//            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//            spinnerScannerDevices.setAdapter(spinnerAdapter);
         }
     }
 
@@ -500,19 +515,19 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
             @Override
             public void run() {
                 if (result != null) {
-                    if(dataLength ++ > 100) { //Clear the cache after 100 scans
-                        textViewData.setText("");
-                        dataLength = 0;
-                    }
-                    textViewData.append(Html.fromHtml(result));
-                    textViewData.append("\n");
-                    ((View) findViewById(R.id.scrollViewData)).post(new Runnable()
-                    {
-                        public void run()
-                        {
-                            ((ScrollView) findViewById(R.id.scrollViewData)).fullScroll(View.FOCUS_DOWN);
-                        }
-                    });
+//                    if(dataLength ++ > 100) { //Clear the cache after 100 scans
+//                        textViewData.setText("");
+//                        dataLength = 0;
+//                    }
+//                    textViewData.append(Html.fromHtml(result));
+//                    textViewData.append("\n");
+//                    ((View) findViewById(R.id.scrollViewData)).post(new Runnable()
+//                    {
+//                        public void run()
+//                        {
+//                            ((ScrollView) findViewById(R.id.scrollViewData)).fullScroll(View.FOCUS_DOWN);
+//                        }
+//                    });
                 }
             }
         });
@@ -524,9 +539,9 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
         int width = dm.widthPixels;
         int height = dm.heightPixels;
         if(width > height){
-            setContentView(R.layout.activity_recieve);
+            setContentView(R.layout.activity_transfer);
         } else {
-            setContentView(R.layout.activity_recieve);
+            setContentView(R.layout.activity_transfer);
         }
     }
 
@@ -571,6 +586,123 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
           jo.put("name","Storage 3");
           jo.put("id","");
           storageData.put(jo);
+
+          String StorageList[]={"Storage 1", "Storage 2","Storage 3"};
+          adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, StorageList);
+          storageSelection.setAdapter(adapter);
+    }
+
+    private void getStorageRegions()throws org.json.JSONException{
+        updateStatus("fetching regions! wait.....",okColor);
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest
+                (Request.Method.POST, fetchStorageRegionsUrl, null, new Response.Listener<JSONArray>() {
+
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        try {
+                            setStorage(response);
+                            updateStatus("Regions Fetching completed",okColor);
+                        }catch(Exception ex){
+                            updateStatus("error: some error occured",errorColor);
+                            System.out.println("in catch block of request function"+ex);
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        updateStatus("System Error",errorColor);
+                        System.out.println("in error response block"+error.getMessage());
+                    }
+                });
+
+        // Add the request to the RequestQueue.
+        requestQueue.add(jsonArrayRequest);
+    }
+    private void setStorage(JSONArray responseStorageData)throws org.json.JSONException{
+          storageData =responseStorageData;
+          storageList = new String[storageData.length()+1];
+          storageList[0]="Select Storage";
+          for(int i=1;i<=storageData.length();i++){
+              storageList[i]=storageData.getJSONObject(i-1).getString("floor_name");
+          }
+        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, storageList);
+        storageSelection.setAdapter(adapter);
+    }
+
+    private void storageChange(int idx)throws org.json.JSONException{
+        JSONArray regionData = storageData.getJSONObject(idx-1).getJSONArray("regions");
+        regionList = new String[regionData.length()+1];
+        regionList[0] = "Select Region";
+        for(int i=1;i<=regionData.length();i++){
+            regionList[i]=regionData.getJSONObject(i-1).getString("region_name");
+        }
+        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, regionList);
+        regionSelection.setAdapter(adapter);
+    }
+
+    public void startTransfer(View view){
+        if(checkTransferStatus()){
+            lockSelections();
+            updateStatus("Transfer Started",okColor);
+            toggleTransferButtons();
+        }
+        else {
+            updateStatus("Select Both Storage and Region",errorColor);
+        }
+    }
+
+    public void toggleTransferButtons(){
+
+        if(transferStart.getVisibility() == View.VISIBLE){
+            transferStart.setVisibility(View.GONE);
+        }
+        else {
+            transferStart.setVisibility(View.VISIBLE);
+        }
+
+        if(transferStop.getVisibility() == View.VISIBLE){
+            transferStop.setVisibility(View.GONE);
+        }
+        else {
+            transferStop.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public void stopTransfer(View view){
+          releaseSelectionLocks();
+          resetSelections();
+          updateStatus("Transfer Stopped",okColor);
+          toggleTransferButtons();
+    }
+
+    private void resetSelections(){
+        storageSelection.setSelection(0);
+        regionSelection.setSelection(0);
+    }
+
+    private void lockSelections(){
+           storageSelection.setEnabled(false);
+           regionSelection.setEnabled(false);
+    }
+
+    private void releaseSelectionLocks(){
+        storageSelection.setEnabled(true);
+        regionSelection.setEnabled(true);
+    }
+
+    private Boolean checkTransferStatus(){
+       if(storageSelection.getSelectedItemPosition() > 0 && regionSelection.getSelectedItemPosition() > 0)return true;
+       else return false;
+    }
+
+    private String getSelectedRegionId() throws JSONException{
+
+        int selected_storage_idx=storageSelection.getSelectedItemPosition()-1;
+        int selected_region_idx=regionSelection.getSelectedItemPosition()-1;
+        String selected_region_id = storageData.getJSONObject(selected_storage_idx).getJSONArray("regions").getJSONObject(selected_region_idx).getString("region_id");
+        return selected_region_id;
+
     }
 
 }

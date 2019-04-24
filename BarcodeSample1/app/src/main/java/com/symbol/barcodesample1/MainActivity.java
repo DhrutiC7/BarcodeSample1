@@ -35,8 +35,7 @@ public class MainActivity extends Activity {
                 break;
             }
             case R.id.transfer:{
-                Intent intent = new Intent(this, Floor.class);
-                intent.putExtra("activity_name", "com.symbol.barcodesample1.Transfer");
+                Intent intent = new Intent(this, Transfer.class);
                 startActivity(intent);
                 break;
             }

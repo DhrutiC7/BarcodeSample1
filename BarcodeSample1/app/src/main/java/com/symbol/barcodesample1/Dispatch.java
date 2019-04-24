@@ -144,12 +144,12 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
     private LinearLayout sealLayout =null;
     private EditText sealData =null;
     private LinearLayout scannedDataDetails =null;
-    private String warehouseOpUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/dispatchPickListItem";
-    private String dispatchInItUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getInitData";
-    private String pickListUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getPickListData";
-    private String  dispatchStartUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/startDispatch";
-    private String  dispatchStopUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/stopDispatch";
-    private String  fetchGatePickListUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/fetchGatePickList";
+    private String warehouseOpUrl = "https://api.eronkan.com/component/warehouse-operations/dispatchItem";
+    private String dispatchInItUrl = "https://api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getInitData";
+    private String pickListUrl = "https://api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getPickListData";
+    private String  dispatchStartUrl = "https://api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/startDispatch";
+    private String  dispatchStopUrl = "https://api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/stopDispatch";
+    private String  fetchGatePickListUrl = "https://api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/fetchGatePickList";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -408,10 +408,10 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
 
     public void postBarcodeData(String data) throws JSONException {
         System.out.println("in postBarcodeData function" );
-        if(!gateDispatchON){
-            delayMsg("dispatch not started","#EF3038");
-        }
-        else {
+//        if(!gateDispatchON){
+//            delayMsg("dispatch not started","#EF3038");
+//        }
+//        else {
             JSONObject parameters = new JSONObject();
             parameters.put("id", data);
             parameters.put("pick_list_data", current_picklist_data);
@@ -431,7 +431,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
 //                                    shiftData.setText(response.get("shift").toString());
                                  }
                                 updateStatus(response.get("msg").toString(), response.get("msgColor").toString());
-                                getPickListData(current_picklist_data.getString("id"), true);
+                                //getPickListData(current_picklist_data.getString("id"), true);
                                 if (!response.get("msg").toString().equals("Barcode Ok") ) {
                                     try {
                                         stopPlaying();
@@ -457,7 +457,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
 // Add the request to the RequestQueue.
             System.out.println("before queue add");
             requestQueue.add(jsonObjectRequest);
-            }
+//            }
     }
     @Override
     public void onStatus(StatusData statusData) {
@@ -1059,6 +1059,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                                 current_picklist_data =null;
                                 gateDispatchON =false;
                                 scannedDataDetails.setVisibility(View.GONE);
+                                initDispatchForm();
 
                             } catch (Exception ex) {
                                 System.out.println("in catch block of request function" + ex);
