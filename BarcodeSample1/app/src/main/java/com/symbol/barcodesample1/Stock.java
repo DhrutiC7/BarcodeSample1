@@ -5,6 +5,7 @@
 package com.symbol.barcodesample1;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -65,7 +66,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Transfer extends Activity implements EMDKListener, DataListener, StatusListener, ScannerConnectionListener, OnCheckedChangeListener {
+public class Stock extends Activity implements EMDKListener, DataListener, StatusListener, ScannerConnectionListener, OnCheckedChangeListener {
 
     private EMDKManager emdkManager = null;
     private BarcodeManager barcodeManager = null;
@@ -106,10 +107,16 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
     ArrayAdapter<String> adapter = null;
     private String storageList[] = null;
     private String regionList[] = null;
-    private Button transferStart = null;
-    private Button transferStop = null;
-    private String fetchStorageRegionsUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_transfer_form_api/getStorageRegions";
-    private String warehouseOpUrl="https://stageapi.eronkan.com:443/component/warehouse-operations/transferItem";
+    private Button stockStart = null;
+    private Button cancel = null;
+    private Button stockStop = null;
+    private Boolean scanValid =true;
+
+    ArrayList<JSONObject> distinctProduct = new ArrayList<JSONObject>();
+    ArrayList<String> scannedCartons = new ArrayList<String>();
+    private String fetchStorageRegionsUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_stock_form_api/getStorageRegions";
+    private String fetchCartonProductUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_stock_form_api/getCartonProduct";
+    private String maintainStockUrl="https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_stock_form_api/maintainStock";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,8 +135,9 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
         storageSelection = (Spinner) findViewById(R.id.storageSelection);
         regionSelection = (Spinner) findViewById(R.id.regionSelection);
         floorId =  getIntent().getStringExtra("floor_id");
-        transferStart = (Button)findViewById(R.id.transferStart);
-        transferStop = (Button)findViewById(R.id.transferStop);
+        stockStart = (Button)findViewById(R.id.stockStart);
+        stockStop = (Button)findViewById(R.id.stockStop);
+        cancel = (Button)findViewById(R.id.cancel);
         requestQueue = requestSingleton.getInstance(this.getApplicationContext()).getRequestQueue();
         EMDKResults results = EMDKManager.getEMDKManager(getApplicationContext(), this);
         if (results.statusCode != EMDKResults.STATUS_CODE.SUCCESS) {
@@ -198,7 +206,6 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
         // Enumerate scanner devices
         enumerateScannerDevices();
         // Set default scanner
-//        spinnerScannerDevices.setSelection(defaultIndex);
         // Initialize scanner
         initScanner();
     }
@@ -263,28 +270,33 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
         }
     }
 
-    public void postBarcodeData(String data)throws JSONException {
+    public void postBarcodeData(final String bar_id)throws JSONException {
         if(!checkTransferStatus()){
             updateStatus("Select Both Storage and Region",errorColor);
         }
         else {
             String selected_region_id = getSelectedRegionId();
             JSONObject parameters = new JSONObject();
-            parameters.put("id", data);
+            parameters.put("id", bar_id);
             parameters.put("region_id", selected_region_id);
 
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                    (Request.Method.POST, warehouseOpUrl, parameters, new Response.Listener<JSONObject>() {
+                    (Request.Method.POST, fetchCartonProductUrl, parameters, new Response.Listener<JSONObject>() {
 
                         @Override
                         public void onResponse(JSONObject response) {
                             try {
-                                if ((boolean) response.get("showBarcodeData")) {
                                     productNameData.setText(response.get("product_name").toString());
                                     productCodeData.setText(response.get("product_code").toString());
-                                }
+                                    if(response.get("msg").toString().equals("Barcode Ok")) {
+                                        updateStatus(response.get("msg").toString(), okColor);
+                                        setDistinctProduct(response,bar_id);
+                                    }
+                                    else{
+                                        updateStatus(response.get("msg").toString(), errorColor);
+                                    }
 
-                                updateStatus(response.get("msg").toString(), response.get("msgColor").toString());
+
                             } catch (Exception ex) {
                                 System.out.println("in catch block of request function" + ex);
                             }
@@ -538,9 +550,9 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
         int width = dm.widthPixels;
         int height = dm.heightPixels;
         if(width > height){
-            setContentView(R.layout.activity_transfer);
+            setContentView(R.layout.activity_stock);
         } else {
-            setContentView(R.layout.activity_transfer);
+            setContentView(R.layout.activity_stock);
         }
     }
 
@@ -569,27 +581,6 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
         return super.onOptionsItemSelected(item);
     }
 
-    private void initTransferForm()throws org.json.JSONException{
-          storageData = new JSONArray();
-          JSONObject jo = new JSONObject();
-          jo.put("name","Storage 1");
-          jo.put("id","");
-          storageData.put(jo);
-
-          jo = new JSONObject();
-          jo.put("name","Storage 2");
-          jo.put("id","");
-          storageData.put(jo);
-
-          jo = new JSONObject();
-          jo.put("name","Storage 3");
-          jo.put("id","");
-          storageData.put(jo);
-
-          String StorageList[]={"Storage 1", "Storage 2","Storage 3"};
-          adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, StorageList);
-          storageSelection.setAdapter(adapter);
-    }
 
     private void getStorageRegions()throws org.json.JSONException{
         updateStatus("fetching regions! wait.....",okColor);
@@ -619,12 +610,12 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
         requestQueue.add(jsonArrayRequest);
     }
     private void setStorage(JSONArray responseStorageData)throws org.json.JSONException{
-          storageData =responseStorageData;
-          storageList = new String[storageData.length()+1];
-          storageList[0]="Select Storage";
-          for(int i=1;i<=storageData.length();i++){
-              storageList[i]=storageData.getJSONObject(i-1).getString("floor_name");
-          }
+        storageData =responseStorageData;
+        storageList = new String[storageData.length()+1];
+        storageList[0]="Select Storage";
+        for(int i=1;i<=storageData.length();i++){
+            storageList[i]=storageData.getJSONObject(i-1).getString("floor_name");
+        }
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, storageList);
         storageSelection.setAdapter(adapter);
     }
@@ -640,39 +631,110 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
         regionSelection.setAdapter(adapter);
     }
 
-    public void startTransfer(View view){
+    public void startStock(View view){
         if(checkTransferStatus()){
             lockSelections();
-            updateStatus("Transfer Started",okColor);
-            toggleTransferButtons();
+            updateStatus("Stock Started",okColor);
+            toggleStockButtons();
         }
         else {
             updateStatus("Select Both Storage and Region",errorColor);
         }
     }
 
-    public void toggleTransferButtons(){
+    public void toggleStockButtons(){
 
-        if(transferStart.getVisibility() == View.VISIBLE){
-            transferStart.setVisibility(View.GONE);
+        if(stockStart.getVisibility() == View.VISIBLE){
+            stockStart.setVisibility(View.GONE);
         }
         else {
-            transferStart.setVisibility(View.VISIBLE);
+            stockStart.setVisibility(View.VISIBLE);
         }
 
-        if(transferStop.getVisibility() == View.VISIBLE){
-            transferStop.setVisibility(View.GONE);
+        if(stockStop.getVisibility() == View.VISIBLE){
+            stockStop.setVisibility(View.GONE);
         }
         else {
-            transferStop.setVisibility(View.VISIBLE);
+            stockStop.setVisibility(View.VISIBLE);
+        }
+
+        if(cancel.getVisibility() == View.VISIBLE){
+            cancel.setVisibility(View.GONE);
+        }
+        else {
+            cancel.setVisibility(View.VISIBLE);
         }
     }
 
-    public void stopTransfer(View view){
-          releaseSelectionLocks();
-          resetSelections();
-          updateStatus("Transfer Stopped",okColor);
-          toggleTransferButtons();
+    public JSONArray getJsonArrString(ArrayList<String> arr)throws JSONException{
+        int len = arr.size();
+        JSONArray arr2 = new JSONArray();
+        for(int i=0;i<len;i++){
+            arr2.put(arr.get(i));
+        }
+        return arr2;
+    }
+
+    public JSONArray getJsonArrJSONObject(ArrayList<JSONObject> arr)throws JSONException{
+        int len = arr.size();
+        JSONArray arr2 = new JSONArray();
+        for(int i=0;i<len;i++){
+            arr2.put(arr.get(i));
+        }
+        return arr2;
+    }
+
+    public void stopStock(View view)throws JSONException{
+
+        if(!scanValid){
+            updateStatus("Only two products allowed, Cancel and Restart Scan",errorColor);
+        }
+        else  {
+            String selected_region_id = getSelectedRegionId();
+            JSONObject parameters = new JSONObject();
+            parameters.put("region_id", selected_region_id);
+            parameters.put("distinct_products", getJsonArrJSONObject(distinctProduct));//converted beacuase request in node is taking it as string
+            parameters.put("scanned_cartons", getJsonArrString(scannedCartons));
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                    (Request.Method.POST, maintainStockUrl, parameters, new Response.Listener<JSONObject>() {
+
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                refreshStockForm();
+                                updateStatus(response.getString("msg"), response.getString("msgColor"));
+
+                            } catch (Exception ex) {
+                                System.out.println("in catch block of request function" + ex);
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            updateStatus("System Error", errorColor);
+                            System.out.println("in error response block" + error.getMessage());
+                        }
+                    });
+
+            // Add the request to the RequestQueue.
+            System.out.println("before queue add");
+            requestQueue.add(jsonObjectRequest);
+        }
+
+    }
+
+    public void cancelStock(View view){
+           refreshStockForm();
+    }
+
+    public void refreshStockForm(){
+        releaseSelectionLocks();
+        resetSelections();
+        toggleStockButtons();
+        distinctProduct.clear();
+        scannedCartons.clear();
+        scanValid=true;
     }
 
     private void resetSelections(){
@@ -681,8 +743,8 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
     }
 
     private void lockSelections(){
-           storageSelection.setEnabled(false);
-           regionSelection.setEnabled(false);
+        storageSelection.setEnabled(false);
+        regionSelection.setEnabled(false);
     }
 
     private void releaseSelectionLocks(){
@@ -691,8 +753,8 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
     }
 
     private Boolean checkTransferStatus(){
-       if(storageSelection.getSelectedItemPosition() > 0 && regionSelection.getSelectedItemPosition() > 0)return true;
-       else return false;
+        if(storageSelection.getSelectedItemPosition() > 0 && regionSelection.getSelectedItemPosition() > 0)return true;
+        else return false;
     }
 
     private String getSelectedRegionId() throws JSONException{
@@ -704,4 +766,35 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
 
     }
 
+
+    private Boolean checkDistinctProduct(JSONObject product)throws JSONException{
+        for(JSONObject data : distinctProduct){
+            if(data.getString("product_id").equals(product.getString("product_id")))return false;
+        }
+        return true;
+    }
+
+    private Boolean checkDistinctCarton(String carton_id){
+        for(String data : scannedCartons){
+            if(data.equals(carton_id))return false;
+        }
+        return true;
+    }
+
+
+    private void setDistinctProduct(JSONObject product, String carton_id)throws JSONException{
+            if(checkDistinctProduct(product)){
+                if(distinctProduct.size()>=2){
+                    scanValid=false;
+                    updateStatus("more than two products not allowed", errorColor);
+                }
+                else{
+                    distinctProduct.add(product);
+                    if(checkDistinctCarton(carton_id))scannedCartons.add(carton_id);
+                }
+            }
+            else{
+                if(checkDistinctCarton(carton_id))scannedCartons.add(carton_id);
+            }
+    }
 }

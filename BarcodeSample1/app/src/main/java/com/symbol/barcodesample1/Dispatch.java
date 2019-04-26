@@ -144,12 +144,12 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
     private LinearLayout sealLayout =null;
     private EditText sealData =null;
     private LinearLayout scannedDataDetails =null;
-    private String warehouseOpUrl = "https://api.eronkan.com/component/warehouse-operations/dispatchItem";
-    private String dispatchInItUrl = "https://api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getInitData";
-    private String pickListUrl = "https://api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getPickListData";
-    private String  dispatchStartUrl = "https://api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/startDispatch";
-    private String  dispatchStopUrl = "https://api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/stopDispatch";
-    private String  fetchGatePickListUrl = "https://api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/fetchGatePickList";
+    private String warehouseOpUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/dispatchItem";
+    private String dispatchInItUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getInitData";
+    private String pickListUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getPickListData";
+    private String  dispatchStartUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/startDispatch";
+    private String  dispatchStopUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/stopDispatch";
+    private String  fetchGatePickListUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/fetchGatePickList";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

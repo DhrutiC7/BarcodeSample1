@@ -39,6 +39,12 @@ public class MainActivity extends Activity {
                 startActivity(intent);
                 break;
             }
+
+            case R.id.stock:{
+                Intent intent = new Intent(this, Stock.class);
+                startActivity(intent);
+                break;
+            }
         }
 
     }
