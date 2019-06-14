@@ -11,9 +11,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -43,9 +45,12 @@ import com.symbol.emdk.barcode.StatusData;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -110,13 +115,18 @@ public class Stock extends Activity implements EMDKListener, DataListener, Statu
     private Button stockStart = null;
     private Button cancel = null;
     private Button stockStop = null;
-    private Boolean scanValid =true;
-
+    //private Boolean scanValid =true;
+    private Boolean stockInProgress =false;
     ArrayList<JSONObject> distinctProduct = new ArrayList<JSONObject>();
     ArrayList<String> scannedCartons = new ArrayList<String>();
-    private String fetchStorageRegionsUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_stock_form_api/getStorageRegions";
-    private String fetchCartonProductUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_stock_form_api/getCartonProduct";
-    private String maintainStockUrl="https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_stock_form_api/maintainStock";
+    Runnable delayRunnable =null;
+    Handler handler = null;
+    Double scannedCartonVolume = 0.0;
+    private String TAG = "Class Name: Stock.java";
+    private int requestTimeout = 300000;
+    private String fetchStorageRegionsUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_stock_form_api/getStorageRegions";
+    private String fetchCartonProductUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_stock_form_api/getCartonProduct";
+    private String maintainStockUrl="https://prataap-api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_stock_form_api/maintainStock";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -138,6 +148,7 @@ public class Stock extends Activity implements EMDKListener, DataListener, Statu
         stockStart = (Button)findViewById(R.id.stockStart);
         stockStop = (Button)findViewById(R.id.stockStop);
         cancel = (Button)findViewById(R.id.cancel);
+        handler = new android.os.Handler(Looper.getMainLooper());
         requestQueue = requestSingleton.getInstance(this.getApplicationContext()).getRequestQueue();
         EMDKResults results = EMDKManager.getEMDKManager(getApplicationContext(), this);
         if (results.statusCode != EMDKResults.STATUS_CODE.SUCCESS) {
@@ -270,9 +281,26 @@ public class Stock extends Activity implements EMDKListener, DataListener, Statu
         }
     }
 
+    private void delayMsg(final String msg, final String color){
+        if(delayRunnable==null)handler.removeCallbacks(delayRunnable);
+
+        delayRunnable = new Runnable() {
+            public void run() {
+                updateStatus(msg,color );
+            }
+        };
+        handler.postDelayed(delayRunnable, 500);
+    }
+
     public void postBarcodeData(final String bar_id)throws JSONException {
-        if(!checkTransferStatus()){
-            updateStatus("Select Both Storage and Region",errorColor);
+        if(!stockInProgress){
+            delayMsg("Press Start Stock Button",errorColor);
+        }
+        else if(!checkTransferStatus()){
+            delayMsg("Select Both Storage and Region",errorColor);
+        }
+        else if(!checkDistinctCarton(bar_id)){
+            delayMsg("Barcode Repeated",errorColor);
         }
         else {
             String selected_region_id = getSelectedRegionId();
@@ -289,11 +317,11 @@ public class Stock extends Activity implements EMDKListener, DataListener, Statu
                                     productNameData.setText(response.get("product_name").toString());
                                     productCodeData.setText(response.get("product_code").toString());
                                     if(response.get("msg").toString().equals("Barcode Ok")) {
-                                        updateStatus(response.get("msg").toString(), okColor);
+                                        delayMsg(response.get("msg").toString(), okColor);
                                         setDistinctProduct(response,bar_id);
                                     }
                                     else{
-                                        updateStatus(response.get("msg").toString(), errorColor);
+                                        delayMsg(response.get("msg").toString(), errorColor);
                                     }
 
 
@@ -306,10 +334,12 @@ public class Stock extends Activity implements EMDKListener, DataListener, Statu
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             updateStatus("System Error", errorColor);
+                            Log.e(TAG, "In error response block" + error);
                             System.out.println("in error response block" + error.getMessage());
                         }
                     });
-
+            RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+            jsonObjectRequest.setRetryPolicy(policy);
 // Add the request to the RequestQueue.
             System.out.println("before queue add");
             requestQueue.add(jsonObjectRequest);
@@ -602,10 +632,12 @@ public class Stock extends Activity implements EMDKListener, DataListener, Statu
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         updateStatus("System Error",errorColor);
+                        Log.e(TAG, "In error response block" + error);
                         System.out.println("in error response block"+error.getMessage());
                     }
                 });
-
+        RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+        jsonArrayRequest.setRetryPolicy(policy);
         // Add the request to the RequestQueue.
         requestQueue.add(jsonArrayRequest);
     }
@@ -636,6 +668,8 @@ public class Stock extends Activity implements EMDKListener, DataListener, Statu
             lockSelections();
             updateStatus("Stock Started",okColor);
             toggleStockButtons();
+            stockInProgress=true;
+            scannedCartonVolume = 0.0;
         }
         else {
             updateStatus("Select Both Storage and Region",errorColor);
@@ -685,11 +719,6 @@ public class Stock extends Activity implements EMDKListener, DataListener, Statu
     }
 
     public void stopStock(View view)throws JSONException{
-
-        if(!scanValid){
-            updateStatus("Only two products allowed, Cancel and Restart Scan",errorColor);
-        }
-        else  {
             String selected_region_id = getSelectedRegionId();
             JSONObject parameters = new JSONObject();
             parameters.put("region_id", selected_region_id);
@@ -707,24 +736,29 @@ public class Stock extends Activity implements EMDKListener, DataListener, Statu
                             } catch (Exception ex) {
                                 System.out.println("in catch block of request function" + ex);
                             }
+                            stockInProgress=false;
                         }
                     }, new Response.ErrorListener() {
 
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             updateStatus("System Error", errorColor);
+                            Log.e(TAG, "In error response block" + error);
+                            stockInProgress=false;
                             System.out.println("in error response block" + error.getMessage());
                         }
                     });
 
+            RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+            jsonObjectRequest.setRetryPolicy(policy);
             // Add the request to the RequestQueue.
             System.out.println("before queue add");
             requestQueue.add(jsonObjectRequest);
-        }
 
     }
 
     public void cancelStock(View view){
+           stockInProgress=false;
            refreshStockForm();
     }
 
@@ -734,7 +768,6 @@ public class Stock extends Activity implements EMDKListener, DataListener, Statu
         toggleStockButtons();
         distinctProduct.clear();
         scannedCartons.clear();
-        scanValid=true;
     }
 
     private void resetSelections(){
@@ -766,6 +799,14 @@ public class Stock extends Activity implements EMDKListener, DataListener, Statu
 
     }
 
+    private JSONObject getSelectedRegion() throws JSONException{
+
+        int selected_storage_idx=storageSelection.getSelectedItemPosition()-1;
+        int selected_region_idx=regionSelection.getSelectedItemPosition()-1;
+        JSONObject selected_region = storageData.getJSONObject(selected_storage_idx).getJSONArray("regions").getJSONObject(selected_region_idx);
+        return selected_region;
+
+    }
 
     private Boolean checkDistinctProduct(JSONObject product)throws JSONException{
         for(JSONObject data : distinctProduct){
@@ -781,20 +822,31 @@ public class Stock extends Activity implements EMDKListener, DataListener, Statu
         return true;
     }
 
-
+    private boolean setAndCheckVolume(JSONObject product)throws JSONException{
+        double scannedVolume = scannedCartonVolume + product.getDouble("product_volume");
+        double selectedRegionVolume = getSelectedRegion().getDouble("region_volume");
+        if(scannedVolume > selectedRegionVolume){
+            delayMsg("region capacity is less than scanned cartons volume",errorColor);
+            return true;
+        }
+        else
+        {
+            scannedCartonVolume = scannedCartonVolume + product.getDouble("product_volume");
+            return true;
+        }
+    }
     private void setDistinctProduct(JSONObject product, String carton_id)throws JSONException{
             if(checkDistinctProduct(product)){
-                if(distinctProduct.size()>=2){
-                    scanValid=false;
-                    updateStatus("more than two products not allowed", errorColor);
+                if(distinctProduct.size()==2){
+                    updateStatus("more than two products not allowed,carton not added in stock", errorColor);
                 }
                 else{
                     distinctProduct.add(product);
-                    if(checkDistinctCarton(carton_id))scannedCartons.add(carton_id);
+                    if(checkDistinctCarton(carton_id) && setAndCheckVolume(product))scannedCartons.add(carton_id);
                 }
             }
             else{
-                if(checkDistinctCarton(carton_id))scannedCartons.add(carton_id);
+                if(checkDistinctCarton(carton_id) && setAndCheckVolume(product))scannedCartons.add(carton_id);
             }
     }
 }

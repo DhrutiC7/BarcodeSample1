@@ -10,9 +10,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -42,9 +44,11 @@ import com.symbol.emdk.barcode.StatusData;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -108,8 +112,13 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
     private String regionList[] = null;
     private Button transferStart = null;
     private Button transferStop = null;
-    private String fetchStorageRegionsUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_transfer_form_api/getStorageRegions";
-    private String warehouseOpUrl="https://stageapi.eronkan.com:443/component/warehouse-operations/transferItem";
+    private Boolean isTransferStarted=false;
+    Runnable delayRunnable =null;
+    Handler handler = null;
+    private String TAG = "Class Name: Transfer.java";
+    private int requestTimeout = 300000;
+    private String fetchStorageRegionsUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_transfer_form_api/getStorageRegions";
+    private String warehouseOpUrl="https://prataap-api.eronkan.com/component/warehouse-operations/transferItem";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -264,8 +273,8 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
     }
 
     public void postBarcodeData(String data)throws JSONException {
-        if(!checkTransferStatus()){
-            updateStatus("Select Both Storage and Region",errorColor);
+        if(!isTransferStarted){
+            delayMsg("Please click START TRANSFER ",errorColor);
         }
         else {
             String selected_region_id = getSelectedRegionId();
@@ -294,10 +303,12 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             updateStatus("System Error", errorColor);
+                            Log.e(TAG, "In error response block" + error);
                             System.out.println("in error response block" + error.getMessage());
                         }
                     });
-
+            RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+            jsonObjectRequest.setRetryPolicy(policy);
 // Add the request to the RequestQueue.
             System.out.println("before queue add");
             requestQueue.add(jsonObjectRequest);
@@ -611,10 +622,12 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         updateStatus("System Error",errorColor);
+                        Log.e(TAG, "In error response block" + error);
                         System.out.println("in error response block"+error.getMessage());
                     }
                 });
-
+        RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+        jsonArrayRequest.setRetryPolicy(policy);
         // Add the request to the RequestQueue.
         requestQueue.add(jsonArrayRequest);
     }
@@ -645,6 +658,7 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
             lockSelections();
             updateStatus("Transfer Started",okColor);
             toggleTransferButtons();
+            isTransferStarted=true;
         }
         else {
             updateStatus("Select Both Storage and Region",errorColor);
@@ -673,6 +687,7 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
           resetSelections();
           updateStatus("Transfer Stopped",okColor);
           toggleTransferButtons();
+        isTransferStarted=false;
     }
 
     private void resetSelections(){
@@ -704,4 +719,14 @@ public class Transfer extends Activity implements EMDKListener, DataListener, St
 
     }
 
+    private void delayMsg(final String msg, final String color){
+        if(delayRunnable==null)handler.removeCallbacks(delayRunnable);
+
+        delayRunnable = new Runnable() {
+            public void run() {
+                updateStatus(msg,color );
+            }
+        };
+        handler.postDelayed(delayRunnable, 500);
+    }
 }

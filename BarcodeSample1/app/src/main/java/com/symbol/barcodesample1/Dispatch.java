@@ -12,9 +12,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
@@ -144,12 +146,14 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
     private LinearLayout sealLayout =null;
     private EditText sealData =null;
     private LinearLayout scannedDataDetails =null;
-    private String warehouseOpUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/dispatchItem";
-    private String dispatchInItUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getInitData";
-    private String pickListUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getPickListData";
-    private String  dispatchStartUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/startDispatch";
-    private String  dispatchStopUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/stopDispatch";
-    private String  fetchGatePickListUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/fetchGatePickList";
+    private String TAG = "Class Name: Dispatch.java";
+    private int requestTimeout = 300000;
+    private String warehouseOpUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/dispatchPickListItem";
+    private String dispatchInItUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getInitData";
+    private String pickListUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getPickListData";
+    private String  dispatchStartUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/startDispatch";
+    private String  dispatchStopUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/stopDispatch";
+    private String  fetchGatePickListUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/fetchGatePickList";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -407,11 +411,10 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
     }
 
     public void postBarcodeData(String data) throws JSONException {
-        System.out.println("in postBarcodeData function" );
-//        if(!gateDispatchON){
-//            delayMsg("dispatch not started","#EF3038");
-//        }
-//        else {
+        if(!gateDispatchON){
+            delayMsg("dispatch not started","#EF3038");
+        }
+        else {
             JSONObject parameters = new JSONObject();
             parameters.put("id", data);
             parameters.put("pick_list_data", current_picklist_data);
@@ -431,7 +434,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
 //                                    shiftData.setText(response.get("shift").toString());
                                  }
                                 updateStatus(response.get("msg").toString(), response.get("msgColor").toString());
-                                //getPickListData(current_picklist_data.getString("id"), true);
+                                getPickListData(current_picklist_data.getString("id"), true);
                                 if (!response.get("msg").toString().equals("Barcode Ok") ) {
                                     try {
                                         stopPlaying();
@@ -450,14 +453,16 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             updateStatus("System Error", errorColor);
+                            Log.e(TAG, "In error response block" + error);
                             System.out.println("in error response block" + error.getMessage());
                         }
                     });
-
+            RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+            jsonObjectRequest.setRetryPolicy(policy);
 // Add the request to the RequestQueue.
             System.out.println("before queue add");
             requestQueue.add(jsonObjectRequest);
-//            }
+            }
     }
     @Override
     public void onStatus(StatusData statusData) {
@@ -766,10 +771,13 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         updateStatus("System Error",errorColor);
+                        Log.e(TAG, "In error response block" + error);
                         System.out.println("in error response block"+error.getMessage());
                     }
                 });
 
+        RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+        jsonObjectRequest.setRetryPolicy(policy);
 // Add the request to the RequestQueue.
         System.out.println("before queue add");
         requestQueue.add(jsonObjectRequest);
@@ -838,10 +846,13 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         updateStatus("System Error",errorColor);
+                        Log.e(TAG, "In error response block" + error);
                         System.out.println("in error response block"+error.getMessage());
                     }
                 });
 
+        RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+        jsonObjectRequest.setRetryPolicy(policy);
 // Add the request to the RequestQueue.
         System.out.println("before queue add");
         requestQueue.add(jsonObjectRequest);
@@ -877,10 +888,13 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         updateStatus("System Error",errorColor);
+                        Log.e(TAG, "In error response block" + error);
                         System.out.println("in error response block"+error.getMessage());
                     }
                 });
 
+        RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+        jsonObjectRequest.setRetryPolicy(policy);
 // Add the request to the RequestQueue.
         System.out.println("before queue add");
         requestQueue.add(jsonObjectRequest);
@@ -1025,10 +1039,13 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             updateStatus("System Error", errorColor);
+                            Log.e(TAG, "In error response block" + error);
                             System.out.println("in error response block" + error.getMessage());
                         }
                     });
 
+            RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+            jsonObjectRequest.setRetryPolicy(policy);
 // Add the request to the RequestQueue.
             System.out.println("before queue add");
             requestQueue.add(jsonObjectRequest);
@@ -1070,10 +1087,13 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             updateStatus("System Error", errorColor);
+                            Log.e(TAG, "In error response block" + error);
                             System.out.println("in error response block" + error.getMessage());
                         }
                     });
 
+            RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+            jsonObjectRequest.setRetryPolicy(policy);
 // Add the request to the RequestQueue.
             System.out.println("before queue add");
             requestQueue.add(jsonObjectRequest);
@@ -1139,7 +1159,6 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
 
     }
     public void refreshFormData(){
-//      gateSelection.setSelection(0);
       pickListSelection.setSelection(0);
       supervisorSelection.setSelection(0);
       guardSelection.setSelection(0);
@@ -1147,7 +1166,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
       mobileNo.setText("");
       vehicleNo.setText("");
       clientData.setText("");
-//      toggleDropDowns();
+      sealData.setText("");
       TableLayout ll = (TableLayout) findViewById(R.id.shippingOrderTable);
       ll.removeAllViews();
     }
@@ -1184,6 +1203,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                             if(response.getString("id")!="null") {
                                 getCurrentPickListData(response.getString("id"), true);
                                 gateDispatchON=true;
+                                sealData.setText("");
                             }
                             else{
                                 if(gateDispatchON)//if dispatch is on at previous selected gate
@@ -1195,6 +1215,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                                     initDispatchForm();
                                 }
                                 gateDispatchON =false;
+                                sealLayout.setVisibility(View.GONE);
                             }
                             updateStatus("gate changed successfully",okColor);
                             enableDispatchButtons();
@@ -1209,11 +1230,14 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         updateStatus("System Error",errorColor);
+                        Log.e(TAG, "In error response block" + error);
                         System.out.println("in error response block"+error.getMessage());
                         enableDispatchButtons();
                     }
                 });
 
+        RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+        jsonObjectRequest.setRetryPolicy(policy);
 // Add the request to the RequestQueue.
         System.out.println("before queue add");
         requestQueue.add(jsonObjectRequest);

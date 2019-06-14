@@ -10,9 +10,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
@@ -44,6 +46,7 @@ import android.os.Bundle;
 import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -95,8 +98,10 @@ public class Production extends Activity implements EMDKListener, DataListener, 
     private final Object lock = new Object();
     private String errorColor  = "#EF3038";
     private  String okColor = "#0865B3";
+    private String TAG = "Class Name: Production.java";
+    private int requestTimeout = 300000;
     RequestQueue requestQueue =null ;
-    private String warehouseOpUrl = "https://stageapi.eronkan.com:443/component/warehouse-operations/producedItem";
+    private String warehouseOpUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/producedItem";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -239,10 +244,13 @@ public class Production extends Activity implements EMDKListener, DataListener, 
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         updateStatus("System Error",errorColor);
+                        Log.e(TAG, "In error response block" + error);
                         System.out.println("in error response block"+error.getMessage());
                     }
                 });
 
+        RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+        jsonObjectRequest.setRetryPolicy(policy);
        // Add the request to the RequestQueue.
         System.out.println("before queue add");
         requestQueue.add(jsonObjectRequest);
