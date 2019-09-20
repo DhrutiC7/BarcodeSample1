@@ -39,6 +39,18 @@ public class Floor extends Activity {
                 startActivity(intent);
                 break;
             }
+            case R.id.storage4:{
+                Intent intent = new Intent(this, Recieve.class);
+                intent.putExtra("floor_id", "7c061628-438c-4160-bd74-3f30f59b174a");
+                startActivity(intent);
+                break;
+            }
+            case R.id.storage5:{
+                Intent intent = new Intent(this, Recieve.class);
+                intent.putExtra("floor_id", "b001865d-1c3e-4fb2-b05b-b3228c3df033");
+                startActivity(intent);
+                break;
+            }
         }
 
     }
