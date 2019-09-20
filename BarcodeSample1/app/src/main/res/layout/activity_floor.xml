@@ -42,9 +42,29 @@
             android:id="@+id/storage3"
             android:layout_width="250dp"
             android:layout_height="50dp"
+            android:layout_marginBottom="5dp"
             android:background="#0865B3"
             android:onClick="selectStorage"
             android:text="Storage 3"
+            android:textColor="#ffffff" />
+
+        <Button
+            android:id="@+id/storage4"
+            android:layout_width="250dp"
+            android:layout_height="50dp"
+            android:layout_marginBottom="5dp"
+            android:background="#0865B3"
+            android:onClick="selectStorage"
+            android:text="Storage 4"
+            android:textColor="#ffffff" />
+
+        <Button
+            android:id="@+id/storage5"
+            android:layout_width="250dp"
+            android:layout_height="50dp"
+            android:background="#0865B3"
+            android:onClick="selectStorage"
+            android:text="Storage 5"
             android:textColor="#ffffff" />
 
         <!--</LinearLayout>-->
