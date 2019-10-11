@@ -43,7 +43,9 @@ import com.symbol.emdk.barcode.StatusData.ScannerStates;
 import com.symbol.emdk.barcode.StatusData;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -76,6 +78,7 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.content.pm.ActivityInfo;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -121,6 +124,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
     private int defaultIndex = 0; // Keep the default scanner
     private int dataLength = 0;
     private String statusString = "";
+    private  boolean canScan = true;
 
     private boolean bSoftTriggerSelected = false;
     private boolean bDecoderSettingsChanged = false;
@@ -143,6 +147,8 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
     private Boolean gateDispatchON =false;
     Runnable delayRunnable =null;
     Handler handler = null;
+    AlertDialog.Builder builder = null;
+
     private LinearLayout sealLayout =null;
     private EditText sealData =null;
     private LinearLayout scannedDataDetails =null;
@@ -154,6 +160,8 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
     private String  dispatchStartUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/startDispatch";
     private String  dispatchStopUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/stopDispatch";
     private String  fetchGatePickListUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/fetchGatePickList";
+    private String dispatchAlertUrl = "https://prataap-api.eronkan.com/component/warehouse-operations/form-data/prataap_snacks_dispatch_form_api/getPickListAlert";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -196,6 +204,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
 //        checkBoxCode39 = (CheckBox)findViewById(R.id.checkBoxCode39);
 //        checkBoxCode128 = (CheckBox)findViewById(R.id.checkBoxCode128);
         spinnerScannerDevices = (Spinner)findViewById(R.id.spinnerScannerDevices);
+        builder = new AlertDialog.Builder(this);
 
         EMDKResults results = EMDKManager.getEMDKManager(getApplicationContext(), this);
         if (results.statusCode != EMDKResults.STATUS_CODE.SUCCESS) {
@@ -385,13 +394,13 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
 //    }
     @Override
     public void onData(ScanDataCollection scanDataCollection) {
-        if ((scanDataCollection != null) && (scanDataCollection.getResult() == ScannerResults.SUCCESS)) {
+        if ((scanDataCollection != null) && (scanDataCollection.getResult() == ScannerResults.SUCCESS) && canScan) {
             ArrayList <ScanData> scanData = scanDataCollection.getScanData();
             updateData("<font color='gray'>" + "Status" + "</font> : " + "OK");
             for(ScanData data : scanData) {
                 System.out.println("scan data = " + data.getData());
                 try {
-                    postBarcodeData(data.getData());
+                    checkAlertStatus(data.getData());
                 }catch(Exception ex){
                     System.out.println("Exception in posting barcode data function:onData");
                 }
@@ -410,15 +419,88 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
         handler.postDelayed(delayRunnable, 500);
     }
 
+    public void checkAlertStatus(String data) throws JSONException{
+        if(!gateDispatchON){
+            delayMsg("dispatch not started", "#EF3038");
+        }
+        else{
+            final String barcodeData = data;
+            JSONObject parameters = new JSONObject();
+            parameters.put("id", data);
+            parameters.put("pick_list_data", current_picklist_data);
+
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+            (Request.Method.POST, dispatchAlertUrl, parameters, new Response.Listener<JSONObject>() {
+                public void onResponse(JSONObject response) {
+                    try {
+                        if ((boolean) response.get("alert")) {
+                            //show the pop-up
+                            canScan = false;
+                            builder
+                            .setMessage("Actual Quantity exceeds Planned Quantity for " + response.get("product"))
+                            .setCancelable(false)
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    Toast.makeText(getApplicationContext(),"you approved dispatch",
+                                            Toast.LENGTH_SHORT).show();
+
+                                    try {
+                                        canScan = true;
+                                        postBarcodeData(barcodeData);
+                                    } catch(Exception ex){
+                                        System.out.println("Exception on dispatch approval");
+                                    }
+                                }
+                            })
+                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    //  Action for 'NO' Button
+                                    canScan = true;
+                                    dialog.cancel();
+                                    Toast.makeText(getApplicationContext(),"you dis-approved dispatch",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            //Creating dialog box
+                            AlertDialog alert = builder.create();
+                            //Setting the title manually
+                            alert.setTitle("Approve Dispatch?");
+                            alert.show();
+                        } else {
+                            postBarcodeData(barcodeData);
+                        }
+                    } catch (Exception ex) {
+                        System.out.println("Exception in alert status request, dispatch form");
+                    }
+                }
+            }, new Response.ErrorListener() {
+
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    updateStatus("System Error", errorColor);
+                    Log.e(TAG, "In error response block" + error);
+                    System.out.println("in error response block" + error.getMessage());
+                }
+            });
+
+            RetryPolicy policy = new DefaultRetryPolicy(requestTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+            jsonObjectRequest.setRetryPolicy(policy);
+
+            // Add the request to the RequestQueue.
+            System.out.println("before queue add");
+            requestQueue.add(jsonObjectRequest);
+        }
+    }
+
     public void postBarcodeData(String data) throws JSONException {
         if(!gateDispatchON){
             delayMsg("dispatch not started","#EF3038");
         }
         else {
+
             JSONObject parameters = new JSONObject();
             parameters.put("id", data);
             parameters.put("pick_list_data", current_picklist_data);
-            System.out.println("params to send = " + parameters);
 
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                     (Request.Method.POST, warehouseOpUrl, parameters, new Response.Listener<JSONObject>() {
@@ -464,6 +546,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
             requestQueue.add(jsonObjectRequest);
             }
     }
+
     @Override
     public void onStatus(StatusData statusData) {
         ScannerStates state = statusData.getState();
@@ -939,7 +1022,6 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                 }
 
             }
-
         }
     }
 
@@ -953,7 +1035,6 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
         ll.addView(row);
         row= new TableRow(context);
         makeAndSetColumn("Product", row,1);
-//        makeAndSetColumn("Weight", row);
         makeAndSetColumn("Planned Qty", row,2);
         makeAndSetColumn("Actual Qty", row,3);
         makeAndSetColumn("row", row,4);
@@ -1022,13 +1103,17 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
                         @Override
                         public void onResponse(JSONObject response) {
                             try {
-                                System.out.println(response);
-                                getPickListData(id, true);
-                                gateDispatchON = true;
-                                toggleDispatchButtons();
-                                toggleDropDowns();
-                                toggleSealLayout();
-                                lockDispatchForm();
+                                if(response.get("status").toString().equals("OK")){
+                                    System.out.println(response);
+                                    getPickListData(id, true);
+                                    gateDispatchON = true;
+                                    toggleDispatchButtons();
+                                    toggleDropDowns();
+                                    toggleSealLayout();
+                                    lockDispatchForm();
+                                } else{
+                                    updateStatus(response.get("status").toString(), errorColor);
+                                }
 
                             } catch (Exception ex) {
                                 System.out.println("in catch block of request function" + ex);
@@ -1038,7 +1123,7 @@ public class Dispatch extends Activity implements EMDKListener, DataListener, St
 
                         @Override
                         public void onErrorResponse(VolleyError error) {
-                            updateStatus("System Error", errorColor);
+                            updateStatus("System Error: " + error.getMessage(), errorColor);
                             Log.e(TAG, "In error response block" + error);
                             System.out.println("in error response block" + error.getMessage());
                         }
