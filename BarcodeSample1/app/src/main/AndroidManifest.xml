@@ -28,7 +28,8 @@
         <activity android:name=".Floor" />
         <activity android:name=".Dispatch" />
         <activity android:name=".Transfer" />
-        <activity android:name=".Stock"></activity>
+        <activity android:name=".Stock" />
+        <activity android:name=".ReReceive" ></activity>>
     </application>
 
 </manifest>

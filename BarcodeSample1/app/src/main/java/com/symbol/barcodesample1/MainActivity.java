@@ -45,6 +45,12 @@ public class MainActivity extends Activity {
                 startActivity(intent);
                 break;
             }
+
+            case R.id.re_receive:{
+                Intent intent = new Intent(this, ReReceive.class);
+                startActivity(intent);
+                break;
+            }
         }
 
     }
